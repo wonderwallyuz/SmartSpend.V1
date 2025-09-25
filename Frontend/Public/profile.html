@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Profile - SmartSpend</title>
+
+  <link rel="stylesheet" href="style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
+  <script src="https://kit.fontawesome.com/2d9a2c9d4d.js" crossorigin="anonymous"></script>
+</head>
+<body>
+  <div class="background"></div>
+
+  <div class="dashboard">
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar" aria-label="Main Navigation">
+      <div class="top-group">
+        <div class="logo">
+          <img src="images/logosmartspend.png" alt="SmartSpend Logo" class="logo-img">
+          <span class="logo-text"></span>
+        </div>
+
+        <nav>
+          <ul class="menu" id="menu">
+            <li class="menu-item"><a href="dashboard.html"><span class="material-symbols-outlined">dashboard</span><span class="label">Dashboard</span></a></li>
+            <li class="menu-item"><a href="#"><span class="material-symbols-outlined">upload</span><span class="label">Upload</span></a></li>
+            <li class="menu-item"><a href="#"><span class="material-symbols-outlined">account_balance_wallet</span><span class="label">Budget</span></a></li>
+            <li class="menu-item"><a href="#"><span class="material-symbols-outlined">assignment</span><span class="label">Reports</span></a></li>
+            <li class="menu-item"><a href="#"><span class="material-symbols-outlined">logout</span><span class="label">Logout</span></a></li>
+          </ul>
+        </nav>
+      </div>
+    </aside>
+
+    <!-- Main content -->
+    <main class="main">
+      <header class="header">
+        <div class="left">
+          <button class="toggle-btn" id="toggleSidebarBtn" aria-label="Toggle sidebar">
+            <i class="fas fa-bars"></i>
+          </button>
+          <h2 class="page-title">Profile</h2>
+        </div>
+
+        <div class="right">
+          <div class="user" id="userProfile" tabindex="0">
+            <div class="avatar"><i class="fas fa-user"></i></div>
+            <div class="user-info">
+              <h4>Eva Ombao</h4>
+              <p>Student</p>
+            </div>
+          </div>
+
+          <div class="profile-menu" id="profileMenu" role="menu" aria-hidden="true">
+            <ul>
+              <li role="menuitem"><a href="#"><i class="fas fa-user"></i> Profile</a></li>
+              <li role="menuitem"><a href="#"><i class="fas fa-cog"></i> Settings</a></li>
+              <li role="menuitem"><a href="#"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+
+      <!-- Profile Section -->
+      <section class="profile-card glass animate-fade">
+        <div class="profile-content">
+          <!-- Left: Profile Picture -->
+          <div class="profile-photo">
+            <img src="images/avatar.png" id="" alt="">
+            <input type="file" id="photoInput" accept="image/*" style="display:none;">
+            <button type="button" class="btn small" id="changePhotoBtn"><i class="fas fa-camera"></i> Change Photo</button>
+          </div>
+
+          <!-- Right: Form -->
+          <form class="profile-form" id="profileForm">
+            <div class="form-group">
+              <label for="fullname">Full Name</label>
+              <input type="text" id="fullname" value="Eva Ombao" />
+            </div>
+
+            <div class="form-group">
+              <label for="username">Username</label>
+              <input type="text" id="username" value="eva123" />
+            </div>
+
+            <div class="form-group">
+              <label for="email">Email</label>
+              <input type="email" id="email" value="eva.ombao@example.com" />
+            </div>
+
+            <div class="form-group">
+              <label for="role">Role</label>
+              <input type="text" id="role" value="Student" disabled />
+            </div>
+
+            <div class="form-group">
+              <label for="bio">Bio</label>
+              <textarea id="bio">College student managing expenses with SmartSpend</textarea>
+            </div>
+
+            <div class="actions">
+              <button type="submit" class="btn primary"><i class="fas fa-save"></i> Save Changes</button>
+            </div>
+          </form>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- JS -->
+  <script src="script.js"></script>
+</body>
+</html>
