@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Budget - SmartSpend</title>
+
+  <!-- CSS -->
+  <link rel="stylesheet" href="style.css" />
+
+  <!-- Fonts & Icons -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" />
+  <script src="https://kit.fontawesome.com/2d9a2c9d4d.js" crossorigin="anonymous"></script>
+</head>
+<body>
+  <div class="background"></div>
+
+  <div class="dashboard">
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+      <div class="top-group">
+        <div class="logo">
+          <img src="../Assets/logosmartspend.png" alt="SmartSpend Logo">
+        </div>
+        <nav>
+          <ul class="menu" id="menu">
+            <li class="menu-item" data-name="dashboard">
+              <a href="index.html"><span class="material-symbols-outlined">dashboard</span><span class="label">Dashboard</span></a>
+            </li>
+            <li class="menu-item" data-name="upload">
+              <a href="upload.html"><span class="material-symbols-outlined">upload</span><span class="label">Upload</span></a>
+            </li>
+            <li class="menu-item active" data-name="budget">
+              <a href="budget.html"><span class="material-symbols-outlined">account_balance_wallet</span><span class="label">Budget</span></a>
+            </li>
+            <li class="menu-item" data-name="reports">
+              <a href="reports.html"><span class="material-symbols-outlined">assignment</span><span class="label">Reports</span></a>
+            </li>
+            <li class="menu-item" data-name="logout">
+              <a href="#"><span class="material-symbols-outlined">logout</span><span class="label">Logout</span></a>
+            </li>
+          </ul>
+        </nav>
+      </div>
+      <div class="sidebar-footer">
+        <button id="collapseBtn" class="collapse-btn"><i class="fas fa-chevron-left"></i></button>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main">
+      <!-- Header -->
+      <header class="header">
+        <div class="left">
+          <button class="toggle-btn" id="toggleSidebarBtn"><i class="fas fa-bars"></i></button>
+          <h2 class="page-title">Set Your Budget</h2>
+        </div>
+        <div class="right">
+          <div class="user" id="userProfile">
+            <div class="avatar"><i class="fas fa-user"></i></div>
+            <div class="user-info">
+              <h4>Eva Ombao</h4>
+              <p>Student</p>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <!-- Add Budget -->
+      <section class="budget-card glass animate-fade">
+        <h3 class="section-title"><i class="fas fa-wallet"></i> Add Budget</h3>
+        <form class="budget-form">
+          <input type="text" placeholder="Budget Period (Weekly/Monthly)" required>
+          <input type="number" placeholder="Budget Amount" required>
+          <input type="date" required>
+          <button type="submit" class="btn-primary"><i class="fas fa-plus-circle"></i> Add Budget</button>
+        </form>
+      </section>
+
+      <!-- Bottom Area -->
+      <section class="bottom">
+       <!-- POP Summary Card -->
+<div class="summary-card glass animate-up">
+  <div class="summary-header">
+    <h3><i class="fas fa-clipboard-check"></i> Budget Summary</h3>
+    <span class="period">Weekly</span>
+  </div>
+
+  <!-- Progress Bar -->
+  <div class="progress-bar">
+    <div class="progress-fill" style="width: 32%;"></div>
+  </div>
+  <p class="progress-label">₱650 spent of ₱2,000</p>
+
+  <div class="summary-grid">
+    <div class="summary-item">
+      <i class="fas fa-wallet icon"></i>
+      <div>
+        <p>Total Budget</p>
+        <h2>₱2,000</h2>
+      </div>
+    </div>
+    <div class="summary-item">
+      <i class="fas fa-arrow-up icon spent"></i>
+      <div>
+        <p>Spent</p>
+        <h2>₱650</h2>
+      </div>
+    </div>
+    <div class="summary-item">
+      <i class="fas fa-arrow-down icon remaining"></i>
+      <div>
+        <p>Remaining</p>
+        <h2>₱1,350</h2>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+        <!-- Breakdown Table -->
+        <div class="transactions glass animate-up">
+          <h3><i class="fas fa-receipt"></i> Budget Breakdown</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>Category</th>
+                <th>Amount</th>
+                <th>% of Budget</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Food</td>
+                <td>₱400</td>
+                <td>20%</td>
+              </tr>
+              <tr>
+                <td>Transport</td>
+                <td>₱300</td>
+                <td>15%</td>
+              </tr>
+              <tr>
+                <td>School Supplies</td>
+                <td>₱150</td>
+                <td>7.5%</td>
+              </tr>
+              <tr>
+                <td>Entertainment</td>
+                <td>₱100</td>
+                <td>5%</td>
+              </tr>
+              <tr>
+                <td><strong>Remaining</strong></td>
+                <td><strong>₱1,050</strong></td>
+                <td><strong>52%</strong></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+  </div>
+</body>
+</html>
