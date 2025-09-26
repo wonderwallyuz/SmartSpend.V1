@@ -333,3 +333,49 @@ if (photoInput && userPhoto) {
 
 })();
 
+// Add Expense button
+const addExpenseBtn = document.getElementById("addExpenseBtn");
+const expenseTable = document.getElementById("expenseTable").querySelector("tbody");
+
+addExpenseBtn.addEventListener("click", () => {
+  const desc = document.getElementById("desc").value.trim();
+  const amount = document.getElementById("amount").value.trim();
+  const date = document.getElementById("date").value;
+  const category = document.getElementById("category").value;
+
+  if (!desc || !amount || !date) {
+    alert("Please fill out all fields.");
+    return;
+  }
+
+  const row = document.createElement("tr");
+  row.innerHTML = `
+    <td>${desc}</td>
+    <td>₱${amount}</td>
+    <td>${date}</td>
+    <td>${category}</td>
+  `;
+
+  expenseTable.appendChild(row);
+
+  // Clear inputs
+  document.getElementById("desc").value = "";
+  document.getElementById("amount").value = "";
+  document.getElementById("date").value = "";
+  document.getElementById("category").selectedIndex = 0;
+});
+
+// Upload File clickable
+const fileInput = document.getElementById("fileInput");
+const uploadBox = document.querySelector(".upload-box");
+
+uploadBox.addEventListener("click", () => {
+  fileInput.click();
+});
+
+fileInput.addEventListener("change", () => {
+  if (fileInput.files.length > 0) {
+    alert(`File uploaded: ${fileInput.files[0].name}`);
+  }
+});
+

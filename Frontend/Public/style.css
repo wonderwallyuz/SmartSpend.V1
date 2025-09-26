@@ -316,3 +316,313 @@ body {
   font-size: 0.85rem;
   padding: 0.4rem 0.8rem;
 }
+
+/* Upload Page Styles */
+.expense-section {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.expense-forms {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 30px;
+}
+
+.add-expense input,
+.add-expense select {
+  width: 100%;
+  margin: 10px 0;
+  padding: 12px;
+  border-radius: 12px;
+  border: none;
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+  font-size: 14px;
+}
+
+.add-expense input:focus,
+.add-expense select:focus {
+  outline: none;
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.upload-file {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.upload-box {
+  border: 2px dashed #7f5cff;
+  border-radius: 14px;
+  padding: 40px 20px;
+  text-align: center;
+  cursor: pointer;
+  transition: background 0.3s ease;
+  color: #ccc;
+}
+.upload-box:hover {
+  background: rgba(127,92,255,0.15);
+}
+.upload-box i {
+  font-size: 36px;
+  margin-bottom: 10px;
+  color: #e040fb;
+}
+
+/* Grid for expense + upload */
+.expense-container {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 30px;
+  margin-bottom: 30px;
+}
+
+.card {
+  padding: 20px;
+  border-radius: 20px;
+  background: rgba(255,255,255,0.08);
+  backdrop-filter: blur(12px);
+  box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+}
+
+/* Inputs */
+.add-expense input,
+.add-expense select {
+  width: 100%;
+  margin: 10px 0;
+  padding: 12px;
+  border-radius: 12px;
+  border: none;
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+  font-size: 14px;
+}
+
+.add-expense input:focus,
+.add-expense select:focus {
+  outline: none;
+  background: rgba(255, 255, 255, 0.15);
+}
+
+/* Upload */
+.upload-file {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.upload-box {
+  border: 2px dashed #7f5cff;
+  border-radius: 14px;
+  padding: 25px 40px;       /* smaller padding */
+  text-align: center;       /* center icon + text */
+  cursor: pointer;
+  transition: background 0.3s ease, border-color 0.3s ease;
+  color: #ccc;
+  width: fit-content;       /* shrink to fit content */
+  margin: 20px auto;        /* center inside parent */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.upload-box i {
+  font-size: 40px;
+  margin-bottom: 8px;
+  color: #bb86fc;           /* highlight color for icon */
+}
+
+.upload-box:hover {
+  background: rgba(127, 92, 255, 0.08);
+  border-color: #bb86fc;
+
+}
+.upload-box i {
+  font-size: 40px;
+  margin-bottom: 10px;
+  color: #e040fb;
+}
+
+/* Table */
+.transactions table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 15px;
+}
+.transactions th,
+.transactions td {
+  padding: 12px;
+  text-align: left;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+.transactions th {
+  color: #e0e0e0;
+  font-weight: 600;
+}
+.expense-container {
+  display: grid;
+  grid-template-columns: 1fr 1.5fr; /* left smaller, right bigger */
+  gap: 20px;
+}
+
+.upload-file.wide {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+/* Modern Budget Summary */
+.summary-card {
+  padding: 25px;
+  border-radius: 20px;
+  margin-bottom: 20px;
+}
+
+.summary-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.summary-header h3 {
+  font-size: 18px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.summary-header .period {
+  background: #7f5cff;
+  padding: 5px 12px;
+  border-radius: 12px;
+  font-size: 14px;
+  color: #fff;
+  font-weight: 500;
+}
+
+/* Progress Bar */
+.progress-bar {
+  width: 100%;
+  height: 10px;
+  background: rgba(255,255,255,0.1);
+  border-radius: 10px;
+  margin: 8px 0 5px;
+  overflow: hidden;
+}
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #ff4d6d, #ff758c);
+  border-radius: 10px;
+}
+.progress-label {
+  font-size: 13px;
+  opacity: 0.8;
+  margin-bottom: 20px;
+}
+
+/* Summary Grid */
+.summary-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 15px;
+}
+
+.summary-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: rgba(255,255,255,0.05);
+  padding: 15px;
+  border-radius: 15px;
+  transition: transform 0.2s ease;
+}
+.summary-item:hover {
+  transform: translateY(-5px);
+}
+.summary-item p {
+  margin: 0;
+  font-size: 13px;
+  opacity: 0.8;
+}
+.summary-item h2 {
+  margin: 3px 0 0;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.summary-item .icon {
+  font-size: 22px;
+  color: #7f5cff;
+  background: rgba(127,92,255,0.15);
+  padding: 10px;
+  border-radius: 50%;
+}
+.summary-item .spent {
+  color: #ff4d6d;
+  background: rgba(255,77,109,0.15);
+}
+.summary-item .remaining {
+  color: #4dff88;
+  background: rgba(77,255,136,0.15);
+}
+/* ------------------------------
+   Add Budget Form
+------------------------------ */
+.add-budget {
+  padding: 25px;
+  border-radius: 20px;
+  margin-bottom: 25px;
+}
+
+.add-budget h3 {
+  margin-bottom: 15px;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.budget-form {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 15px;
+  align-items: center;
+}
+
+.budget-form input {
+  padding: 14px 16px;
+  border-radius: 12px;
+  border: none;
+  outline: none;
+  font-size: 14px;
+  color: #fff;
+  background: rgba(255,255,255,0.08);
+  transition: all 0.2s ease;
+}
+
+.budget-form input:focus {
+  background: rgba(127, 92, 255, 0.15);
+  box-shadow: 0 0 0 2px #7f5cff;
+}
+
+.budget-form button {
+  padding: 14px;
+  border: none;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #7f5cff, #b07cff);
+  color: #fff;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.budget-form button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 15px rgba(127, 92, 255, 0.5);
+}
