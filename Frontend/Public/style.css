@@ -84,19 +84,6 @@ body {
 .sidebar.collapsed .menu a { justify-content: center; }
 .sidebar.collapsed .collapse-btn i { transform: rotate(180deg); }
 
-/* Collapse button */
-.collapse-btn {
-  border: none;
-  background: linear-gradient(90deg,#7f5cff,#e040fb);
-  padding: 8px 12px;
-  border-radius: 12px;
-  cursor: pointer;
-  color: #fff;
-  font-size: 16px;
-  transition: background 0.3s ease;
-}
-.collapse-btn:hover { background: linear-gradient(90deg,#9b6bff,#f062ff); }
-
 /* Main */
 .main {
   flex: 1;
@@ -130,44 +117,38 @@ body {
 .user-info h4 { font-size:15px; }
 .user-info p { font-size:12px; opacity:0.7; }
 
-/* Profile dropdown (compact, rectangular, accessible) */
-.profile-menu {
-  position: fixed;
-  top: 0; left: 0;
-  transform: translate(0, 0);
-  background: rgba(20,20,40,0.96);
-  border-radius: 10px;
-  padding: 6px 0;
-  width: 160px;
-  box-shadow: 0 8px 30px rgba(0,0,0,0.45);
-  display: none;
+/* Profile dropdown menu */
+#profileMenu {
+  position: fixed;            /* ✅ pinned to screen */
+  top: 60px;                  /* adjust to be just below header / avatar */
+  right: 20px;                /* adjust to align with avatar at top-right */
+  background: rgba(60, 0, 100, 0.95);
+  backdrop-filter: blur(8px);
+  color: #fff;
+  border-radius: 12px;
+  padding: 1rem;
+  display: none;              /* default hidden */
   flex-direction: column;
-  z-index: 1200;
-  -webkit-tap-highlight-color: transparent;
+  gap: 0.75rem;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+  z-index: 2000;              /* ✅ stay above other content */
 }
-.profile-menu.show { display: flex; }
-.profile-menu a {
-  display: block;
-  padding: 10px 14px;
+
+#profileMenu.show {
+  display: flex;              /* shown when toggled */
+}
+
+#profileMenu a {
   color: #fff;
-  font-size: 14px;
-  font-weight: 500;
   text-decoration: none;
-  border-radius: 6px;
-  transition: background 0.16s ease, color 0.12s ease;
+  font-size: 0.95rem;
 }
-.profile-menu a:hover,
-.profile-menu a:active {
-  background: #a020f0;
-  color: #fff;
+
+#profileMenu a:hover {
+  color: #ff9df0;
 }
-.profile-menu a:focus-visible {
-  box-shadow: 0 0 0 4px rgba(160,32,240,0.14);
-  background: #8b12d3;
-  color: #fff;
-}
-.profile-menu a:focus { outline: none; }
-.profile-menu a:first-child { margin-top: 2px; }
+
+
 
 /* Cards */
 .glass {
@@ -193,8 +174,20 @@ body {
 .transactions thead th { font-weight:600; }
 .badge { display:inline-block; padding:6px 12px; border-radius:999px; background:linear-gradient(90deg,#7f5cff,#e040fb); font-size:12px; }
 
-/* Chart */
-.chart-box { flex:1; display:flex; align-items:center; justify-content:center; min-height:280px; }
+.chart-box {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 300px;     /* reduced from 280px */
+  max-height: 300px;     /* prevent it from growing too big */
+  padding: 10px;
+}
+
+.chart-box canvas {
+  max-width: 100%;        /* limit the width */
+  max-height: 100%;       /* limit the height */
+}
 
 /* Responsive */
 @media (max-width:980px) {
@@ -625,4 +618,445 @@ body {
 .budget-form button:hover {
   transform: translateY(-2px);
   box-shadow: 0 6px 15px rgba(127, 92, 255, 0.5);
+}
+  /* ===== ACTION BUTTONS IN TABLE ===== */
+.action-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1rem;
+  color: #ccc;
+  margin: 0 6px;
+  transition: color 0.3s ease;
+}
+
+.action-btn.edit:hover {
+  color: #4caf50;   /* green on hover */
+}
+
+.action-btn.delete:hover {
+  color: #e53935;   /* red on hover */
+}
+
+/* input fields inside the table */
+.transactions input[type="text"],
+.transactions input[type="number"] {
+  background: rgba(255,255,255,0.1);
+  border: 1px solid rgba(255,255,255,0.2);
+  color: #fff;
+  padding: 4px 6px;
+  border-radius: 4px;
+  width: 80px;
+}
+
+/* buttons below the table */
+.table-actions {
+  margin-top: 15px;
+  text-align: right;
+}
+
+.btn-action {
+  background: #6a0dad;      /* match your purple theme */
+  color: #fff;
+  border: none;
+  padding: 8px 16px;
+  margin-left: 10px;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.btn-action.edit { background: #4a90e2; }     /* blue for edit */
+.btn-action.delete { background: #e24a4a; }   /* red for delete */
+
+.btn-action:hover {
+  opacity: 0.9;
+}
+
+/* highlight the selected table row */
+#budgetTable tbody tr {
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+#budgetTable tbody tr.selected {
+  background: rgba(255, 255, 255, 0.1);
+  outline: 2px solid #6a0dad;
+}
+
+/* ===== MAIN AREA ===== */
+.main {
+  flex: 1;
+  padding: 1.5rem;
+  overflow-y: auto;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.page-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+
+/* ===== FILTER BAR ===== */
+.filters {
+  display: flex;
+  align-items: flex-end;
+  gap: 1rem;
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.filter-fields {
+  display: flex;
+  gap: 1rem;
+  flex: 1;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.field input,
+.field select {
+  padding: 0.5rem;
+  border-radius: 8px;
+  border: none;
+  outline: none;
+}
+
+/* ===== BUTTON ===== */
+.btn-primary {
+  background: #a855f7;
+  color: #fff;
+  border: none;
+  padding: 0.75rem 1.25rem;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+.btn-primary:hover {
+  background: #9333ea;
+}
+
+/* ===== CHART AREA ===== */
+.chart-area {
+  padding: 2rem;
+  border-radius: 12px;
+  min-height: 400px;
+}
+
+.chart-box {
+  height: 450px; /* important for Chart.js */
+}
+
+/* Align button beside inputs */
+.filters .filter-fields {
+  display: flex;
+  align-items: flex-end;
+  gap: 1rem;              
+  flex-wrap: wrap;
+}
+
+/* Dark-style inputs similar to Budget page */
+.input-dark {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 0.6rem 1rem;
+  border-radius: 6px;
+  color: #fff;
+  width: 220px;
+}
+
+.input-dark::placeholder {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.input-dark:focus {
+  outline: none;
+  border-color: #9f6eff;
+}
+
+/* Chart area spacing */
+.chart-area {
+  margin-top: 1rem;
+}
+
+.chart-box {
+  height: 600px;
+   padding: 1rem;
+}
+.chart-box canvas {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+/* Dark style for select dropdown */
+.input-dark select,
+.input-dark,
+select.input-dark {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #fff;
+  border-radius: 6px;
+  padding: 0.6rem 1rem;
+  width: 220px;
+  appearance: none;              
+  -webkit-appearance: none;
+  -moz-appearance: none;
+}
+
+/* Dropdown list itself (on open) */
+select.input-dark option {
+  background: #1a1033;         
+  color: #fff;
+}
+
+/* Add a custom arrow */
+select.input-dark {
+  background-image: url("data:image/svg+xml;utf8,<svg fill='white' height='14' width='14' viewBox='0 0 24 24'><path d='M7 10l5 5 5-5z'/></svg>");
+  background-repeat: no-repeat;
+  background-position: right 1rem center;
+  background-size: 14px;
+}
+
+/* On focus */
+select.input-dark:focus {
+  outline: none;
+  border-color: #9f6eff;
+}
+
+/* Glassmorphic profile menu */
+.profile-menu {
+  position: absolute;
+  top: 70px;              /* just below the header */
+  right: 2rem;
+  width: 220px;
+  background: rgba(255,255,255,0.05);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 16px;
+  padding: 1rem 0;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.4);
+  display: none;          /* hidden by default */
+  z-index: 50;
+}
+
+.profile-menu.show {
+  display: block;
+  animation: fadeIn 0.25s ease-in-out;
+}
+
+.profile-menu ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.profile-menu li a {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  color: #fff;
+  text-decoration: none;
+  font-weight: 500;
+  transition: background 0.2s;
+}
+
+.profile-menu li a:hover {
+  background: rgba(255,255,255,0.1);
+  border-radius: 8px;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-5px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .profile-menu {
+    right: 50%;
+    transform: translateX(50%);
+    width: 80%;
+  }
+}
+
+/* ===== Modern Logout Section (Centered) ===== */
+
+#logoutSection {
+  display: flex;
+  justify-content: center;       /* centers horizontally */
+  align-items: center;           /* centers vertically */
+}
+.logout-card {
+  background: rgba(255, 255, 255, 0.07);
+  backdrop-filter: blur(14px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 20px;
+  padding: 3rem 3.5rem;
+  width: 420px;
+  text-align: center;
+  color: #fff;
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.4);
+  animation: slideUp 0.5s ease;
+  margin: 0; /* remove margin so it truly centers */
+}
+
+.logout-icon {
+  background: linear-gradient(135deg, #7c3aed, #8b5cf6);
+  width: 70px;
+  height: 70px;
+  margin: 0 auto 1.5rem;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 2rem;
+  color: #fff;
+  box-shadow: 0 8px 18px rgba(124, 58, 237, 0.4);
+}
+
+.logout-card h1 {
+  font-size: 1.6rem;
+  font-weight: 600;
+  margin-bottom: 0.8rem;
+}
+
+.logout-card .subtitle {
+  font-size: 0.95rem;
+  color: #d4d4d8;
+  margin-bottom: 2rem;
+  line-height: 1.5;
+}
+
+.logout-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+}
+
+.logout-btn {
+  background: linear-gradient(90deg, #7c3aed, #8b5cf6);
+  color: #fff;
+  padding: 0.8rem 1.6rem;
+  border: none;
+  border-radius: 12px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.3s ease;
+}
+
+.logout-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(124, 58, 237, 0.5);
+}
+
+.cancel-btn {
+  background: transparent;
+  border: 1px solid rgba(255,255,255,0.3);
+  color: #fff;
+  padding: 0.8rem 1.6rem;
+  border-radius: 12px;
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.3s ease, transform 0.2s ease;
+}
+
+.cancel-btn:hover {
+  background: rgba(255,255,255,0.1);
+  transform: translateY(-2px);
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from {opacity: 0;}
+  to {opacity: 1;}
+}
+
+@keyframes slideUp {
+  from {transform: translateY(30px); opacity: 0;}
+  to {transform: translateY(0); opacity: 1;}
+}
+
+/* ============ GLOBAL FONT ============ */
+body, .sidebar, .menu, .menu-item, .label, .page-title, .profile-menu, input, textarea, button {
+  font-family: "Poppins", sans-serif;
+}
+
+/* ============ SETTINGS PAGE ============ */
+.settings-card {
+  margin-top: 2rem;           /* aligns below header */
+  margin-left: 2rem;          /* keeps it in main content area */
+  max-width: 600px;
+  padding: 2rem 2.5rem;
+  background: rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(16px);
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #fff;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
+}
+
+.settings-card h3 {
+  font-size: 1.6rem;
+  margin-bottom: 1.5rem;
+}
+
+.settings-form .form-group {
+  margin-bottom: 1.2rem;
+}
+
+.settings-form label {
+  display: block;
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+}
+
+.settings-form input {
+  width: 100%;
+  padding: 0.8rem 1rem;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+}
+
+.settings-form input:focus {
+  border-color: #7c3aed;
+  outline: none;
+}
+
+.actions {
+  margin-top: 1.8rem;
+  text-align: right;
+}
+
+.btn.primary {
+  background: linear-gradient(90deg, #7c3aed, #8b5cf6);
+  padding: 0.9rem 1.8rem;
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  font-weight: 600;
+  transition: transform 0.2s ease, box-shadow 0.3s ease;
+}
+
+.btn.primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(124, 58, 237, 0.5);
 }
