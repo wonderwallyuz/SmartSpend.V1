@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Reports - SmartSpend</title>
+
+  <!-- CSS -->
+  <link rel="stylesheet" href="style.css" />
+
+  <!-- Fonts & Icons -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" />
+  <script src="https://kit.fontawesome.com/2d9a2c9d4d.js" crossorigin="anonymous"></script>
+
+  <!-- ChartJS -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <!-- Flatpickr for calendar date range -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+
+  <style>
+    /* ============= GENERAL RESET ============= */
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html,body { height:100%; }
+    body {
+      font-family: "Poppins", sans-serif;
+      color: #fff;
+      background: #0b0016; /* main background same as profile */
+      overflow-x: hidden;
+    }
+
+   .background {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(135deg, #150022, #1a0033 40%, #2b0057 100%);
+}
+
+
+    .user-info h4 { font-size: 0.95rem; }
+    .user-info p { font-size: 0.8rem; opacity: 0.7; }
+
+  
+    /* Filters */
+    .filters {
+      background: rgba(255,255,255,0.05);
+      backdrop-filter: blur(14px);
+      padding: 1rem;
+      border-radius: 16px;
+      margin-bottom: 2rem;
+    }
+    .filter-fields {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      align-items: flex-end;
+    }
+    .field { display: flex; flex-direction: column; }
+    label { margin-bottom: 0.3rem; }
+    .input-dark, select, input[type=text] {
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.2);
+      padding: 0.5rem 0.75rem;
+      border-radius: 8px;
+      color: #fff;
+    }
+    .btn-primary {
+      background: #7f5cff, #e040fb;
+      border: none;
+      color: #fff;
+      font-weight: 600;
+      padding: 0.6rem 1.2rem;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    @media (max-width:768px){
+      #applyFilters{ width:100%; }
+    }
+
+    /* Chart area */
+    .chart-area {
+      background: rgba(255,255,255,0.05);
+      backdrop-filter: blur(14px);
+      padding: 1rem 1.5rem;
+      border-radius: 16px;
+    }
+    .chart-area h3 { margin-bottom: 1rem; }
+    .chart-box { height: 500px; }
+    .chart-box canvas { width: 100% !important; height: 100% !important; }
+  </style>
+</head>
+
+<body>
+  <div class="background"></div>
+  <div class="dashboard">
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar" aria-label="Main Navigation">
+      <div class="top-group">
+        <div class="logo">
+          <img src="../Assets/logosmartspend.png" alt="SmartSpend Logo">
+        </div>
+
+        <nav>
+          <ul class="menu" id="menu">
+            <li class="menu-item" data-name="dashboard">
+              <a href="dashboard.html"><span class="material-symbols-outlined">dashboard</span><span class="label">Dashboard</span></a>
+            </li>
+            <li class="menu-item" data-name="upload">
+              <a href="upload.html"><span class="material-symbols-outlined">upload</span><span class="label">Upload</span></a>
+            </li>
+            <li class="menu-item" data-name="budget">
+              <a href="budget.html"><span class="material-symbols-outlined">account_balance_wallet</span><span class="label">Budget</span></a>
+            </li>
+            <li class="menu-item active" data-name="reports">
+              <a href="reports.html"><span class="material-symbols-outlined">assignment</span><span class="label">Reports</span></a>
+            </li>
+            <li class="menu-item" data-name="logout">
+              <a href="#"><span class="material-symbols-outlined">logout</span><span class="label">Logout</span></a>
+            </li>
+          </ul>
+        </nav>
+      </div>
+      <div class="profile-menu" id="profileMenu" role="menu" aria-hidden="true">
+  <ul>
+    <li role="menuitem"><a href="profile.html"><i class="fas fa-user"></i> Profile</a></li>
+    <li role="menuitem"><a href="settings.html"><i class="fas fa-cog"></i> Settings</a></li>
+    <li role="menuitem"><a href="help.html"><i class="fas fa-question-circle"></i> Help</a></li>
+    <li role="menuitem"><a href="login.html"><i class="fas fa-sign-out-alt"></i> Log Out</a></li>
+  </ul>
+</div>
+
+
+      <div class="sidebar-footer">
+        <button id="collapseBtn" class="collapse-btn" aria-pressed="false">
+          <i class="fas fa-chevron-left"></i>
+        </button>
+      </div>
+    </aside>
+
+    <!-- Main content -->
+    <main class="main">
+      <header class="header">
+        <div class="left">
+          <button class="toggle-btn" id="toggleSidebarBtn" aria-label="Toggle sidebar">
+            <i class="fas fa-bars"></i>
+          </button>
+          <h2 class="page-title">Reports and Insights</h2>
+        </div>
+
+        <div class="right">
+          <div class="user" id="userProfile" tabindex="0" role="button" aria-haspopup="true" aria-expanded="false">
+            <div class="avatar"><i class="fas fa-user"></i></div>
+            <div class="user-info">
+              <h4>Eva Ombao</h4>
+              <p>Student</p>
+            </div>
+          </div>
+
+          <div class="profile-menu" id="profileMenu" role="menu" aria-hidden="true">
+            <ul>
+              <li><a href="profile.html"><i class="fas fa-user"></i> Profile</a></li>
+              <li><a href="#"><i class="fas fa-cog"></i> Settings</a></li>
+              <li><a href="#"><i class="fas fa-question-circle"></i> Help</a></li>
+              <li><a href="#"><i class="fas fa-sign-out-alt"></i> Log Out</a></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+
+      <!-- Filters -->
+      <section class="filters">
+        <div class="filter-fields">
+          <div class="field">
+            <label for="dateRange">Date Range:</label>
+            <input type="text" id="dateRange" placeholder="Select date range" class="input-dark">
+          </div>
+          <div class="field">
+            <label for="category">Category:</label>
+            <select id="category" class="input-dark">
+              <option value="">All</option>
+              <option value="food">Food</option>
+              <option value="transport">Transport</option>
+              <option value="drinks">Drinks</option>
+              <option value="entertainment">Entertainment</option>
+              <option value="skincare">Skincare</option>
+              <option value="subscriptions">Subscriptions</option>
+            </select>
+          </div>
+          <button id="applyFilters" class="btn-primary">Apply Filters</button>
+        </div>
+      </section>
+
+      <!-- Chart -->
+      <section class="chart-area">
+        <h3>Category Spending</h3>
+        <div class="chart-box">
+          <canvas id="categoryChart"></canvas>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- JS -->
+  <script>
+    // Sidebar toggle
+    const sidebar = document.getElementById('sidebar');
+    const collapseBtn = document.getElementById('collapseBtn');
+    const toggleSidebarBtn = document.getElementById('toggleSidebarBtn');
+
+    collapseBtn.addEventListener('click', () => {
+      sidebar.classList.toggle('collapsed');
+      collapseBtn.setAttribute('aria-pressed', sidebar.classList.contains('collapsed'));
+    });
+
+    toggleSidebarBtn.addEventListener('click', () => {
+      sidebar.classList.toggle('collapsed');
+    });
+
+    // Profile dropdown toggle
+    const userProfile = document.getElementById('userProfile');
+    const profileMenu = document.getElementById('profileMenu');
+
+    userProfile.addEventListener('click', () => {
+      profileMenu.classList.toggle('show');
+      const expanded = profileMenu.classList.contains('show');
+      userProfile.setAttribute('aria-expanded', expanded);
+      profileMenu.setAttribute('aria-hidden', !expanded);
+    });
+
+    document.addEventListener('click', (e) => {
+      if (!userProfile.contains(e.target) && !profileMenu.contains(e.target)) {
+        profileMenu.classList.remove('show');
+        userProfile.setAttribute('aria-expanded', 'false');
+        profileMenu.setAttribute('aria-hidden', 'true');
+      }
+    });
+
+    // ChartJS
+    const ctx = document.getElementById('categoryChart').getContext('2d');
+    new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: ['Food','Transport','Drinks','Entertainment','Skincare','Subscriptions'],
+        datasets: [{
+          data: [300, 500, 200, 400, 150, 250],
+          backgroundColor: ['#5AC4FF','#FFFFFF','#BCA7FF','#7A7DFF','#D54FFF','#CCCCFF'],
+          borderRadius: 6,
+          borderSkipped: false,
+          barThickness: 70
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+          x: {
+            grid: { display: false },
+            ticks: { color: '#fff', font: { size: 14 } }
+          },
+          y: {
+            grid: { color: 'rgba(255,255,255,0.1)' },
+            ticks: { color: '#fff', font: { size: 14 } }
+          }
+        },
+        plugins: { legend: { display: false } }
+      }
+    });
+
+    // Flatpickr
+    flatpickr("#dateRange", {
+      mode: "range",
+      dateFormat: "Y-m-d",
+      altInput: true,
+      altFormat: "F j, Y"
+    });
+  </script>
+</body>
+</html>
