@@ -3,9 +3,12 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Upload - SmartSpend</title>
+  <title>Upload - SmartSpend</title>x
 
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <script src="{{ url_for('static', filename='ExpenceData.js') }}"></script>
   <link rel="stylesheet" href="style.css" />
+
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" />
   <script src="https://kit.fontawesome.com/2d9a2c9d4d.js" crossorigin="anonymous"></script>
@@ -65,17 +68,19 @@
     <li role="menuitem"><a href="login.html"><i class="fas fa-sign-out-alt"></i> Log Out</a></li>
   </ul>
 </div>
+     <!-- Add Expense & Upload -->
 
-
-    <!-- Add Expense & Upload -->
 <section class="glass expense-container">
-  <div class="add-expense card">
+  <!-- Add Expense -->
+   <div class="add-expense card">
     <h3>Add Expense</h3>
-    <input type="text" id="desc" placeholder="Description" />
-    <input type="number" id="amount" placeholder="Amount (₱)" />
-    <input type="date" id="date" />
-    <!-- Category removed -->
-    <button id="addExpenseBtn" class="btn primary">Add Expense</button>
+    <form action="/submit-expense" method="POST" class="expense-form">
+      <input type="text" name="desc" placeholder="Description" required />
+      <input type="number" name="amount" placeholder="Amount (₱)" step="0.01" required />
+      <input type="date" name="date" required />
+      <button type="submit" class="btn">Add Expense</button>
+
+    </form>
   </div>
 
   <div class="upload-file card wide">
@@ -92,22 +97,33 @@
       <!-- Table Preview -->
       <section class="glass transactions card">
         <h3>Recent Expenses</h3>
-        <table id="expenseTable">
-          <thead>
-            <tr>
-              <th>Description</th>
-              <th>Amount</th>
-              <th>Date</th>
-              <th>Category</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr><td>Jollibee Lunch</td><td>₱150</td><td>2025-08-07</td><td>Food</td></tr>
-            <tr><td>Jeepney Fare</td><td>₱30</td><td>2025-08-06</td><td>Transport</td></tr>
-            <tr><td>Ballpen & Notebook</td><td>₱130</td><td>2025-08-06</td><td>School Supplies</td></tr>
-            <tr><td>Milktea</td><td>₱75</td><td>2025-08-06</td><td>Drinks</td></tr>
-          </tbody>
-        </table>
+        <table id="recentExpensesTable">
+  <thead>
+    <tr>
+      <th>Description</th>
+      <th>Amount</th>
+      <th>Date</th>
+      <th>Category</th>
+    </tr>
+  </thead>
+
+  <tbody>
+  {% for desc, amount, date in expenses %}
+  <tr>
+    <td>{{ desc }}</td>
+    <td>₱{{ "%.2f"|format(amount) }}</td>
+    <td>{{ date }}</td>
+    <td>—</td> <!-- Category not yet stored -->
+  </tr>
+  {% else %}
+  <tr>
+    <td colspan="4">No expenses yet.</td>
+  </tr>
+  {% endfor %}
+  </tbody>
+  
+</table>
+
       </section>
     </main>
   </div>
