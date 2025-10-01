@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>SMARTSPEND – Login</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+/* ---------- RESET & BASE ---------- */
+*{margin:0;padding:0;box-sizing:border-box;}
+body{
+  font-family:'Poppins',sans-serif;
+  background:radial-gradient(circle at top left,#0d0f25 0%,#050814 100%);
+  color:#fff;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  min-height:100vh;
+}
+
+/* ---------- LAYOUT ---------- */
+.container{
+  width:90%;
+  max-width:1200px;
+  display:grid;
+  grid-template-columns:1fr 400px;
+  gap:4rem;
+}
+
+/* ---------- LEFT ---------- */
+.left{
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+}
+.brand-logo{
+  width:160px;
+  margin-bottom:2rem;
+}
+h1{
+  font-size:2.8rem;
+  font-weight:700;
+  line-height:1.2;
+  margin-bottom:1rem;
+}
+h1 span{
+  display:block;
+  color:#e044ff;
+}
+p.subtext{
+  font-size:1rem;
+  line-height:1.5;
+  color:rgba(255,255,255,0.8);
+  margin-bottom:2rem;
+  max-width:420px;
+}
+.features{
+  display:grid;
+  grid-template-columns:repeat(2,200px);
+  gap:1.2rem;
+}
+.feature-box{
+  background:rgba(255,255,255,0.05);
+  padding:1rem;
+  border-radius:12px;
+  text-align:center;
+  backdrop-filter:blur(6px);
+  transition:all .3s ease;
+}
+.feature-box:hover{
+  background:rgba(255,255,255,0.1);
+  transform:translateY(-3px);
+}
+.feature-box svg{
+  width:34px;
+  height:34px;
+  margin-bottom:.5rem;
+  fill:#e044ff;
+}
+.feature-box span{
+  display:block;
+  font-size:.95rem;
+  font-weight:500;
+}
+
+/* ---------- RIGHT ---------- */
+.right{
+  background:rgba(255,255,255,0.05);
+  padding:2rem;
+  border-radius:16px;
+  backdrop-filter:blur(12px);
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  box-shadow:0 0 25px rgba(0,0,0,0.4);
+}
+.right h2{
+  font-size:2rem;
+  font-weight:600;
+  margin-bottom:.5rem;
+  text-align:center;
+}
+.right p{
+  font-size:.95rem;
+  color:rgba(255,255,255,0.75);
+  margin-bottom:2rem;
+  text-align:center;
+}
+
+/* ---------- FORM ---------- */
+form{
+  display:flex;
+  flex-direction:column;
+  gap:1rem;
+  margin-bottom:1.5rem;
+}
+input[type="text"],input[type="password"]{
+  width:100%;
+  padding:.85rem 1rem;
+  border-radius:8px;
+  border:1px solid rgba(255,255,255,0.2);
+  background:rgba(255,255,255,0.05);
+  color:#fff;
+  font-size:.95rem;
+}
+input::placeholder{
+  color:rgba(255,255,255,0.5);
+}
+input:focus{
+  outline:none;
+  border-color:#e044ff;
+}
+
+.remember-forgot{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  font-size:.9rem;
+  margin-bottom:1rem;
+}
+.remember-forgot label{
+  display:flex;
+  align-items:center;
+  gap:.4rem;
+  cursor:pointer;
+}
+.remember-forgot input[type="checkbox"]{
+  accent-color:#e044ff;
+}
+.remember-forgot a{
+  color:#e044ff;
+  text-decoration:none;
+}
+.remember-forgot a:hover{text-decoration:underline;}
+
+/* ---------- BUTTON ---------- */
+.login-btn{
+  width:100%;
+  padding:.9rem;
+  background:linear-gradient(90deg,#4c6ef5,#e044ff);
+  color:#fff;
+  font-weight:600;
+  font-size:1rem;
+  border:none;
+  border-radius:8px;
+  cursor:pointer;
+  margin-top:.5rem;
+  transition:transform .3s ease,box-shadow .3s ease;
+}
+.login-btn:hover{
+  transform:translateY(-2px);
+  box-shadow:0 6px 18px rgba(224,68,255,0.4);
+}
+
+.divider{
+  display:flex;
+  align-items:center;
+  text-align:center;
+  color:rgba(255,255,255,0.6);
+  font-size:.9rem;
+  margin:1.5rem 0;
+}
+.divider::before,.divider::after{
+  content:"";
+  flex:1;
+  height:1px;
+  background:rgba(255,255,255,0.2);
+  margin:0 .75rem;
+}
+
+/* ---------- SOCIAL ---------- */
+.socials{
+  display:flex;
+  justify-content:center;
+  gap:1rem;
+  margin-bottom:1.5rem;
+}
+.socials button{
+  width:48px;
+  height:48px;
+  border-radius:50%;
+  background:rgba(255,255,255,0.05);
+  border:1px solid rgba(255,255,255,0.2);
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  cursor:pointer;
+  transition:background .3s ease,transform .3s ease;
+}
+.socials button:hover{
+  background:rgba(255,255,255,0.15);
+  transform:translateY(-2px);
+}
+.socials img{
+  width:22px;
+  height:22px;
+}
+
+/* ---------- SIGNUP LINK ---------- */
+.signup-link{
+  text-align:center;
+  font-size:.9rem;
+  color:rgba(255,255,255,0.75);
+}
+.signup-link a{
+  color:#e044ff;
+  text-decoration:none;
+  font-weight:500;
+}
+.signup-link a:hover{text-decoration:underline;}
+
+/* ---------- MODAL ---------- */
+.modal{
+  position:fixed;
+  top:0;left:0;
+  width:100%;
+  height:100%;
+  background:rgba(0,0,0,0.6);
+  display:none;
+  justify-content:center;
+  align-items:center;
+  z-index:1000;
+}
+.modal-content{
+  background:#10122a;
+  padding:2rem;
+  border-radius:12px;
+  max-width:380px;
+  width:90%;
+  text-align:center;
+  box-shadow:0 10px 25px rgba(0,0,0,0.5);
+}
+.modal-content h3{
+  margin-bottom:1rem;
+  font-size:1.5rem;
+}
+.modal-content input{
+  width:100%;
+  margin-bottom:1rem;
+  padding:.8rem;
+  border-radius:8px;
+  border:1px solid rgba(255,255,255,0.2);
+  background:rgba(255,255,255,0.05);
+  color:#fff;
+}
+.modal-content button{
+  padding:.8rem 1rem;
+  border:none;
+  background:linear-gradient(90deg,#4c6ef5,#e044ff);
+  color:#fff;
+  font-weight:600;
+  border-radius:8px;
+  cursor:pointer;
+}
+.close-modal{
+  margin-top:1rem;
+  font-size:.9rem;
+  color:#e044ff;
+  cursor:pointer;
+}
+
+/* ---------- RESPONSIVE ---------- */
+@media(max-width:900px){
+  .container{
+    grid-template-columns:1fr;
+    text-align:center;
+  }
+  .features{
+    grid-template-columns:repeat(2,1fr);
+    justify-items:center;
+  }
+  .left{align-items:center;margin-bottom:2rem;}
+  .right{max-width:420px;margin:0 auto;}
+}
+</style>
+</head>
+
+<body>
+<div class="container">
+  <!-- LEFT -->
+  <div class="left">
+    <img 
+  src="../Assets/logosmartspend.png" 
+  alt="SmartSpend Logo"
+  style="
+    position:absolute;
+    top:20px;
+    left:30px;
+    width:140px;
+    height:auto;
+    z-index:1000;"
+>
+    <h1>Everything you need to<br><span>manage your money</span></h1>
+
+    <div class="features">
+      <div class="feature-box">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24"><path d="M11 2v10h10c0-5.52-4.48-10-10-10zm-1 0c-5.52 0-10 4.48-10 10s4.48 10 10 10c5.23 0 9.49-4.02 9.95-9.19H10V2z"/></svg>
+        <span>Auto-Categorization</span>
+      </div>
+      <div class="feature-box">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24"><path d="M4 22h2V10H4v12zm6 0h2V4h-2v18zm6 0h2V14h-2v8z"/></svg>
+        <span>Budget Dashboard</span>
+      </div>
+      <div class="feature-box">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24"><path d="M6 2h9l5 5v15a1 1 0 01-1 1H6a1 1 0 01-1-1V3a1 1 0 011-1zm8 6V3.5L18.5 8H14z"/></svg>
+        <span>CSV Upload</span>
+      </div>
+      <div class="feature-box">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24"><path d="M17 8V6a5 5 0 00-10 0v2H5v14h14V8h-2zm-8-2a3 3 0 016 0v2H9V6zm3 6a2 2 0 110 4 2 2 0 010-4z"/></svg>
+        <span>Secure Data</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT -->
+  <div class="right">
+    <h2>Login</h2>
+    <p>Glad you're back!</p>
+
+    <!-- LOGIN FORM -->
+    <form id="loginForm">
+      <input type="text" placeholder="Username" id="username" required>
+      <input type="password" placeholder="Password" id="password" required>
+
+      <div class="remember-forgot">
+        <label>
+          <input type="checkbox" id="rememberMe">
+          Remember me
+        </label>
+        <a href="#" id="forgotPasswordLink">Forgot password?</a>
+      </div>
+
+      <button type="submit" class="login-btn">Login</button>
+    </form>
+
+    <div class="divider">Or continue with</div>
+
+    <!-- SOCIAL LOGIN -->
+   <div class="socials">
+  <!-- Google -->
+  <button id="googleBtn" aria-label="Sign in with Google">
+    <svg width="22" height="22" viewBox="0 0 48 48">
+      <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.54 30.3 0 24 0 14.63 0 6.5 5.8 2.72 14.1l7.96 6.19C12.25 13.4 17.63 9.5 24 9.5z"/>
+      <path fill="#4285F4" d="M46.5 24.5c0-1.6-.14-3.14-.4-4.64H24v9.29h12.7c-.55 2.9-2.19 5.36-4.63 7.04l7.06 5.48C43.3 37.25 46.5 31.34 46.5 24.5z"/>
+      <path fill="#FBBC05" d="M10.68 28.29c-1-2.9-1-6.06 0-8.96L2.72 14.1c-3.3 6.65-3.3 14.75 0 21.4l7.96-6.19z"/>
+      <path fill="#34A853" d="M24 48c6.48 0 11.92-2.14 15.89-5.82l-7.06-5.48c-2.04 1.38-4.64 2.3-7.58 2.3-6.37 0-11.75-3.9-13.32-9.39l-7.96 6.19C6.5 42.2 14.63 48 24 48z"/>
+    </svg>
+  </button>
+
+  <!-- Facebook -->
+  <button id="facebookBtn" aria-label="Sign in with Facebook">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="#1877F2">
+      <path d="M22 12c0-5.52-4.48-10-10-10S2 6.48 2 12c0 5 3.66 9.13 8.44 9.88v-6.99H7.9V12h2.54V9.8c0-2.5 1.49-3.89 3.77-3.89 1.09 0 2.23.2 2.23.2v2.45h-1.25c-1.23 0-1.62.77-1.62 1.56V12h2.77l-.44 2.89h-2.33v6.99C18.34 21.13 22 17 22 12z"/>
+    </svg>
+  </button>
+
+  <!-- GitHub -->
+  <button id="githubBtn" aria-label="Sign in with GitHub">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
+      <path d="M12 .5C5.37.5 0 5.87 0 12.52c0 5.3 3.44 9.8 8.2 11.4.6.11.82-.26.82-.58v-2.16c-3.34.73-4.04-1.61-4.04-1.61-.55-1.4-1.34-1.78-1.34-1.78-1.1-.76.08-.74.08-.74 1.22.09 1.86 1.28 1.86 1.28 1.08 1.86 2.83 1.32 3.52 1.01.11-.79.42-1.32.77-1.63-2.66-.31-5.46-1.36-5.46-6.07 0-1.34.47-2.43 1.25-3.28-.12-.31-.54-1.57.12-3.27 0 0 1-.32 3.3 1.25a11.5 11.5 0 0 1 6 0c2.3-1.57 3.3-1.25 3.3-1.25.66 1.7.24 2.96.12 3.27.78.85 1.25 1.94 1.25 3.28 0 4.72-2.8 5.75-5.48 6.06.43.37.82 1.1.82 2.23v3.3c0 .32.22.7.82.58C20.56 22.32 24 17.82 24 12.52 24 5.87 18.63.5 12 .5z"/>
+    </svg>
+  </button>
+</div>
+
+    <div class="signup-link">
+      Don’t have an account? <a href="signup.html">Sign Up</a>
+    </div>
+  </div>
+</div>
+
+<!-- FORGOT PASSWORD MODAL -->
+<div class="modal" id="forgotModal">
+  <div class="modal-content">
+    <h3>Reset Password</h3>
+    <input type="email" id="resetEmail" placeholder="Enter your email" required>
+    <button id="sendResetBtn">Send Reset Link</button>
+    <div class="close-modal" id="closeModal">Cancel</div>
+  </div>
+</div>
+
+<script>
+/* ---------- LOGIN REDIRECT ---------- */
+document.getElementById('loginForm').addEventListener('submit',function(e){
+  e.preventDefault();
+  window.location.href='dashboard.html';
+});
+
+/* ---------- SOCIAL LOGIN ---------- */
+document.getElementById('googleBtn').addEventListener('click',()=>window.location.href='https://accounts.google.com/signin');
+document.getElementById('facebookBtn').addEventListener('click',()=>window.location.href='https://www.facebook.com/login.php');
+document.getElementById('githubBtn').addEventListener('click',()=>window.location.href='https://github.com/login');
+
+/* ---------- FORGOT PASSWORD MODAL ---------- */
+const forgotLink=document.getElementById('forgotPasswordLink');
+const modal=document.getElementById('forgotModal');
+const closeModal=document.getElementById('closeModal');
+
+forgotLink.addEventListener('click',e=>{
+  e.preventDefault();
+  modal.style.display='flex';
+});
+closeModal.addEventListener('click',()=>modal.style.display='none');
+window.addEventListener('click',e=>{
+  if(e.target===modal){modal.style.display='none';}
+});
+
+document.getElementById('sendResetBtn').addEventListener('click',()=>{
+  const email=document.getElementById('resetEmail').value;
+  if(email){
+    alert(`Password reset link sent to ${email}`);
+    modal.style.display='none';
+  }else{
+    alert('Please enter a valid email');
+  }
+});
+</script>
+
+</body>
+</html>
