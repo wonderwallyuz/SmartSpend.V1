@@ -7,6 +7,8 @@
 
   <!-- CSS -->
   <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <script src="{{ url_for('static', filename='script.js') }}"></script>
 
   <!-- Fonts & Icons -->
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
@@ -122,26 +124,13 @@
               </tr>
             </thead>
             <tbody>
+              {% for desc, amount  in expenses %}
               <tr>
-                <td>Jollibee Lunch</td>
-                <td>₱150</td>
+                <td>{{ desc }}</td>
+                <td>₱{{ "%.2f"|format(amount) }}</td>
                 <td><span class="badge">Food</span></td>
               </tr>
-              <tr>
-                <td>Jeepney Fare</td>
-                <td>₱30</td>
-                <td><span class="badge">Transport</span></td>
-              </tr>
-              <tr>
-                <td>Ballpen & Notebook</td>
-                <td>₱130</td>
-                <td><span class="badge">School</span></td>
-              </tr>
-              <tr>
-                <td>Milktea</td>
-                <td>₱75</td>
-                <td><span class="badge">Drinks</span></td>
-              </tr>
+              {% endfor %}
             </tbody>
           </table>
         </div>
