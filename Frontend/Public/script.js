@@ -10,6 +10,7 @@
     const menuItems = document.querySelectorAll('.menu-item');
     const userProfile = document.getElementById('userProfile');
     const profileMenu = document.getElementById('profileMenu');
+    
 
     const isMobile = () => window.innerWidth <= 768;
     try {
@@ -143,13 +144,19 @@
         });
 
         // close when clicking outside
-        document.addEventListener('click', function (e) {
-          if (!userProfile.contains(e.target) && !profileMenu.contains(e.target)) {
-            profileMenu.classList.remove('show');
-            userProfile.setAttribute('aria-expanded', 'false');
-            profileMenu.setAttribute('aria-hidden', 'true');
-          }
-        });
+        document.addEventListener("DOMContentLoaded", () => {
+        const navItems = document.querySelectorAll(".nav-item");
+
+        navItems.forEach(item => {
+          item.addEventListener("click", (e) => {
+            // Remove active class from all
+            navItems.forEach(i => i.classList.remove("active"));
+            // Add active to this one
+            item.classList.add("active");
+            // Let the browser navigate normally via href
+    });
+  });
+});
       }
     } catch (err) {
       console.error('Profile menu init error:', err);
