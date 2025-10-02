@@ -16,6 +16,16 @@ app = Flask(
     template_folder=TEMPLATE_DIR,
     static_folder=TEMPLATE_DIR
 )
+"""
+@app.route('/')
+def landing():
+    return render_template("landingpage.html")"""
+
+@app.route('/login')
+def login():
+    return render_template("login.html")
+
+
 
 @app.route('/')
 def index():
@@ -28,8 +38,18 @@ def index():
     # upload.html is directly under Public/
     return render_template("upload.html", expenses=expenses)
 
+@app.route('/dashboard')
+def dashboard():
+    conn = sqlite3.connect(DB_PATH)
+    c = conn.cursor()
+    c.execute("SELECT description, amount FROM expenses ORDER BY id DESC")
+    expenses = c.fetchall()
+    conn.close()
 
-@app.route('/submit-expense', methods=['POST'])
+    return render_template("dashboard.html", expenses=expenses)
+
+
+@app.route('/submit-expense', methods=['POST']) 
 def submit_expense():
     desc = request.form.get('desc')
     amount = float(request.form.get('amount'))
