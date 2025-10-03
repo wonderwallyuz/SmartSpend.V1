@@ -1,6 +1,6 @@
 import os
 import sqlite3
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, flash, session
 from flask import redirect, url_for
 
 # --- Paths ---
@@ -14,20 +14,96 @@ DB_PATH = os.path.join(BASE_DIR, "../DataBase/expenses.db")
 app = Flask(
     __name__,
     template_folder=TEMPLATE_DIR,
-    static_folder=TEMPLATE_DIR
+    static_folder=os.path.join(BASE_DIR, "../Frontend/Assets")
+    
 )
-"""
+app.secret_key = "secret123"
+
 @app.route('/')
 def landing():
-    return render_template("landingpage.html")"""
+    return render_template("landingpage.html")
 
 @app.route('/login')
+def loginpage():
+    return render_template("login.html")
+
+# ✅ LOGIN ROUTE
+@app.route('/submit-login', methods=["GET", "POST"])
 def login():
+    if request.method == "POST":
+        email = request.form["email"]
+        password = request.form["password"]
+
+        conn = sqlite3.connect(DB_PATH)
+        cur = conn.cursor()
+        cur.execute("SELECT id, username FROM users WHERE email = ? AND password = ?", (email, password))
+        user = cur.fetchone()
+        conn.close()
+
+        if user:
+            session["user_id"] = user[0]   # use id
+            session["username"] = user[1]  # store username
+            flash(f"Welcome back, {user[1]}!", "success")
+            return redirect(url_for("dashboard"))
+        else:
+            flash("Invalid email or password!", "error")
+            return redirect(url_for("login"))
+
     return render_template("login.html")
 
 
+@app.route('/signup')
+def signuppage():
+    return render_template("signup.html")
 
-@app.route('/')
+
+@app.route("/create-signup", methods=["GET", "POST"])
+def signup(): 
+    if request.method == "POST":
+        username = request.form["username"]   # 🔄 changed fullname → username
+        email = request.form["email"]
+        password = request.form["password"]
+        confirm_password = request.form["confirm_password"]
+
+        if password != confirm_password:
+            flash("Passwords do not match!", "error")
+            return redirect(url_for("signup"))
+
+        try:
+            conn = sqlite3.connect(DB_PATH)
+            cur = conn.cursor()
+            cur.execute("INSERT INTO users (username, password, email) VALUES (?, ?, ?)",
+                        (username, password, email))   # 🔄 fixed column order
+            conn.commit()
+            conn.close()
+            flash("Account created successfully! Please log in.", "success")
+            return redirect(url_for("login"))
+        except sqlite3.IntegrityError:
+            flash("Email already registered!", "error")
+            return redirect(url_for("signup"))
+
+    return render_template("signup.html")
+
+
+
+
+@app.route('/logout')
+def logout():
+    return render_template("logout.html")
+
+@app.route('/budget')
+def budget():   
+    return render_template("budget.html")
+
+@app.route('/reports')
+def reports():    
+    return render_template("reports.html")
+
+
+
+
+
+@app.route('/upload')
 def index():
     conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()

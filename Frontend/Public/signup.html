@@ -5,6 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>SMARTSPEND – Sign Up</title>
 
+ <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <script src="{{ url_for('static', filename='signup.js') }}"></script>
+
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
 
 <style>
@@ -230,7 +233,7 @@ input:focus{
   <!-- LEFT -->
   <div class="left">
   <img 
-  src="../Assets/logosmartspend.png" 
+  src="{{ url_for('static', filename='logosmartspend.png') }}" 
   alt="SmartSpend Logo"
   style="
     position:absolute;
@@ -269,15 +272,17 @@ input:focus{
     <p>Create your SmartSpend account</p>
 
     <!-- SIGN-UP FORM -->
-    <form>
-      <input type="text" placeholder="Full Name" required>
-      <input type="email" placeholder="Email Address" required>
-      <input type="password" placeholder="Password" required>
-      <input type="password" placeholder="Confirm Password" required>
-      <button type="submit" class="signup-btn">Create Account</button>
-    </form>
+<form method="POST" action="{{ url_for('signup') }}">
+  <input type="text" name="username" placeholder="Username" required>
+  <input type="email" name="email" placeholder="Email Address" required>
+  <input type="password" name="password" placeholder="Password" required>
+  <input type="password" name="confirm_password" placeholder="Confirm Password" required>
+  <button type="submit" class="signup-btn">Create Account</button>
+</form>
 
-    <div class="divider">Or continue with</div>
+
+<div class="divider">Or continue with</div>
+
 
     <!-- SOCIAL LOGIN -->
   <div class="socials">

@@ -6,7 +6,8 @@
   <title>Profile - SmartSpend</title>
 
   <!-- CSS -->
-  <link rel="stylesheet" href="style.css" />
+<link rel="stylesheet" href="../Assets/style.css">
+
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
   <script src="{{ url_for('static', filename='script.js') }}"></script>
 
@@ -27,27 +28,24 @@
     <aside class="sidebar" id="sidebar" aria-label="Main Navigation">
       <div class="top-group">
         <div class="logo">
-  <img src="../Assets/logosmartspend.png" alt="SmartSpend Logo">
+          <img src="{{ url_for('static', filename='logosmartspend.png') }}" alt="SmartSpend Logo">
 </div>
         <nav>
           <ul class="menu" id="menu">
             <li class="menu-item active" data-name="dashboard">
-              <a href="dashboard.html"><span class="material-symbols-outlined">dashboard</span><span class="label">Dashboard</span></a>
+              <a href="{{ url_for('dashboard') }}"><span class="material-symbols-outlined">dashboard</span><span class="label">Dashboard</span></a>
             </li>
-            <li class="menu-item" data-name="upload">
-  <a href="upload.html" onclick="showSection('uploadSection')">
-    <span class="material-symbols-outlined">upload</span>
-    <span class="label">Upload</span>
-  </a>
-</li>
-            <li class="menu-item" data-name="budget">
-              <a href="#"><span class="material-symbols-outlined">account_balance_wallet</span><span class="label">Budget</span></a>
+            <li class="nav-item" data-name="upload">
+              <a href="{{ url_for('index') }}"><span class="material-symbols-outlined">upload</span><span class="label">Upload</span></a>
             </li>
-            <li class="menu-item" data-name="reports">
-              <a href="#"><span class="material-symbols-outlined">assignment</span><span class="label">Reports</span></a>
+            <li class="nav-item" data-name="budget">
+              <a href="{{ url_for('budget') }}"><span class="material-symbols-outlined">account_balance_wallet</span><span class="label">Budget</span></a>
             </li>
-            <li class="menu-item" data-name="logout">
-              <a href="#"><span class="material-symbols-outlined">logout</span><span class="label">Logout</span></a>
+            <li class="nav-item" data-name="reports">
+              <a href="{{ url_for('reports') }}"><span class="material-symbols-outlined">assignment</span><span class="label">Reports</span></a>
+            </li>
+            <li class="nav-item" data-name="logout">
+              <a href="{{ url_for('logout') }}"><span class="material-symbols-outlined">logout</span><span class="label">Logout</span></a>
             </li>
           </ul>
         </nav>
@@ -146,7 +144,7 @@
   </div>
 
   <!-- JS -->
-  <script src="script.js"></script>
+  <script src="../Assets/script.js"></script>
 </body>
 </html>
 

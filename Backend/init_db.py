@@ -16,5 +16,19 @@ CREATE TABLE IF NOT EXISTS expenses (
 )
 """)
 
+c.execute("""
+CREATE TABLE IF NOT EXISTS users (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    username TEXT UNIQUE NOT NULL,
+    password TEXT NOT NULL
+)
+""")
+
+# ✅ Add email column to existing users table
+c.execute("ALTER TABLE users ADD COLUMN email TEXT")
+
+
+
+
 conn.commit()
 conn.close()
