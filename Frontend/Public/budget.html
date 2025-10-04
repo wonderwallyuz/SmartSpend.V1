@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Budget - SmartSpend</title>
+
+  <!-- CSS -->
+  <link rel="stylesheet" href="../Assets/style.css" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <script src="{{ url_for('static', filename='script.js') }}"></script>
+  <!-- Fonts & Icons -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" />
+  <script src="https://kit.fontawesome.com/2d9a2c9d4d.js" crossorigin="anonymous"></script>
+
+  <!-- Small inline styles for selection, modals and toast (overrides coming from style.css where needed) -->
+  <style>
+    /* Ensure background doesn't intercept clicks */
+    .background { pointer-events: none; z-index: -1; }
+
+    /* Make the transactions area sit above background */
+    .transactions { position: relative; z-index: 5; }
+
+    /* Row selection */
+    #budgetTable tbody tr { cursor: pointer; transition: background 0.18s ease; }
+    #budgetTable tbody tr:hover { background: rgba(255,255,255,0.04); }
+    #budgetTable tbody tr.selected {
+      background: rgba(106, 13, 173, 0.28);
+      outline: 2px solid rgba(138,43,226,0.9);
+    }
+
+    /* Buttons */
+    .table-actions { margin-top: 12px; display:flex; justify-content:flex-end; gap:10px; }
+    .btn-action { padding:8px 14px; border-radius:8px; border:0; cursor:pointer; color:#fff; font-weight:600; }
+    .btn-action.edit { background:#3a86ff; }
+    .btn-action.delete { background:#ff4d6d; }
+
+    /* MODAL base */
+    .modal {
+      position: fixed; inset: 0; display:flex; align-items:center; justify-content:center;
+      background: rgba(0,0,0,0.55); z-index: 9999; padding: 20px;
+    }
+    .modal.hidden { display: none; }
+
+    .modal-card {
+      width: 360px; max-width: calc(100% - 40px);
+      background: #0f0022; color: #fff; border-radius: 12px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+      padding: 18px;
+      transform-origin: center;
+      animation: modalIn .18s ease;
+    }
+    @keyframes modalIn {
+      from { opacity: 0; transform: translateY(6px) scale(0.99); }
+      to { opacity:1; transform: translateY(0) scale(1); }
+    }
+    .modal-card h3 { margin: 0 0 12px; font-size: 1.05rem; }
+    .modal-card p { margin: 0 0 14px; color: #ddd; font-size: 0.95rem; }
+
+    .modal-field { margin-bottom: 12px; }
+    .modal-field input[type="number"] {
+      width:100%; padding:10px; border-radius:8px; background:#1a0033; border:1px solid #3a2a5b; color:#fff;
+    }
+
+    .modal-actions { display:flex; justify-content: flex-end; gap: 8px; margin-top:6px; }
+    .btn-primary { background:#3a86ff; color:#fff; padding:8px 12px; border-radius:8px; border:0; cursor:pointer; }
+    .btn-cancel { background:#666; color:#fff; padding:8px 12px; border-radius:8px; border:0; cursor:pointer; }
+    .btn-danger { background:#ff4d6d; color:#fff; padding:8px 12px; border-radius:8px; border:0; cursor:pointer; }
+
+    /* Toast */
+    .toast {
+      position: fixed;
+      right: 20px;
+      bottom: 20px;
+      background: rgba(20,20,30,0.95);
+      color: #fff;
+      padding: 10px 14px;
+      border-radius: 10px;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.5);
+      z-index: 10001;
+      opacity: 0; transform: translateY(8px);
+      transition: opacity 0.25s ease, transform 0.25s ease;
+      font-weight:600;
+    }
+    .toast.show { opacity: 1; transform: translateY(0); }
+  </style>
+</head>
+<body>
+  <div class="background"></div>
+
+  <div class="dashboard">
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+      <div class="top-group">
+        <div class="logo">
+          <img src="../Assets/logosmartspend.png" alt="SmartSpend Logo">
+        </div>
+        <nav>
+          <ul class="menu" id="menu">
+            <li class="nav-item" data-name="dashboard">
+              <a href="/dashboard"><span class="material-symbols-outlined">dashboard</span><span class="label">Dashboard</span></a>
+            </li>
+            <li class="nav-item" data-name="upload">
+              <a href="/upload"><span class="material-symbols-outlined">upload</span><span class="label">Upload</span></a>
+            </li>
+            <li class="menu-item active" data-name="budget">
+              <a href="/budget"><span class="material-symbols-outlined">account_balance_wallet</span><span class="label">Budget</span></a>
+            </li>
+            <li class="nav-item" data-name="reports">
+              <a href="/reports"><span class="material-symbols-outlined">assignment</span><span class="label">Reports</span></a>
+            </li>
+            <li class="nav-item" data-name="logout">
+              <a href="/logout"><span class="material-symbols-outlined">logout</span><span class="label">Logout</span></a>
+            </li>
+          </ul>
+        </nav>
+      </div>
+      <div class="profile-menu" id="profileMenu" role="menu" aria-hidden="true">
+  <ul>
+    <li role="menuitem"><a href="/profile"><i class="fas fa-user"></i> Profile</a></li>
+    <li role="menuitem"><a href="/settings"><i class="fas fa-cog"></i> Settings</a></li>
+    <li role="menuitem"><a href="/help"><i class="fas fa-question-circle"></i> Help</a></li>
+    <li role="menuitem"><a href="/login"><i class="fas fa-sign-out-alt"></i> Log Out</a></li>
+  </ul>
+</div>
+
+      <div class="sidebar-footer">
+        <button id="collapseBtn" class="collapse-btn"><i class="fas fa-chevron-left"></i></button>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main">
+      <!-- Header -->
+      <header class="header">
+        <div class="left">
+          <button class="toggle-btn" id="toggleSidebarBtn"><i class="fas fa-bars"></i></button>
+          <h2 class="page-title">Set Your Budget</h2>
+        </div>
+        <div class="right">
+          <div class="user" id="userProfile">
+            <div class="avatar"><i class="fas fa-user"></i></div>
+            <div class="user-info">
+              <h4>Eva Ombao</h4>
+              <p>Student</p>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <!-- Add Budget -->
+      <section class="budget-card glass animate-fade">
+  <h3 class="section-title"><i class="fas fa-wallet"></i> Add Budget</h3>
+  <form id="addBudgetForm" class="budget-form">
+    <input id="periodInput" type="text" placeholder="Budget Period (Weekly/Monthly)" required>
+    <input id="amountInput" type="number" placeholder="Budget Amount" required>
+    <input id="dateInput" type="date" required>
+    <button type="submit" class="btn-primary">
+      <i class="fas fa-plus-circle"></i> Add Budget
+    </button>
+  </form>
+</section>
+
+
+      <!-- Bottom Area -->
+      <section class="bottom">
+        <!-- Summary Card -->
+        <div class="summary-card glass animate-up">
+          <div class="summary-header">
+            <h3><i class="fas fa-clipboard-check"></i> Budget Summary</h3>
+            <span class="period">Weekly</span>
+          </div>
+
+          <div class="progress-bar">
+            <div class="progress-fill" style="width: 32%;"></div>
+          </div>
+          <p class="progress-label">₱650 spent of ₱2,000</p>
+
+          <div class="summary-grid">
+            <div class="summary-item">
+              <i class="fas fa-wallet icon"></i>
+              <div>
+                <p>Total Budget</p>
+                <h2>₱2,000</h2>
+              </div>
+            </div>
+            <div class="summary-item">
+              <i class="fas fa-arrow-up icon spent"></i>
+              <div>
+                <p>Spent</p>
+                <h2>₱650</h2>
+              </div>
+            </div>
+            <div class="summary-item">
+              <i class="fas fa-arrow-down icon remaining"></i>
+              <div>
+                <p>Remaining</p>
+                <h2>₱1,350</h2>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Breakdown Table -->
+        <div class="transactions glass animate-up">
+          <h3><i class="fas fa-receipt"></i> Budget Breakdown</h3>
+          <table id="budgetTable">
+            <thead>
+              <tr>
+                <th>Category</th>
+                <th>Amount</th>
+                <th>% of Budget</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Food</td>
+                <td>₱400</td>
+                <td>20%</td>
+              </tr>
+              <tr>
+                <td>Transport</td>
+                <td>₱300</td>
+                <td>15%</td>
+              </tr>
+              <tr>
+                <td>School Supplies</td>
+                <td>₱150</td>
+                <td>7.5%</td>
+              </tr>
+              <tr>
+                <td>Entertainment</td>
+                <td>₱100</td>
+                <td>5%</td>
+              </tr>
+              <tr>
+                <td><strong>Remaining</strong></td>
+                <td><strong>₱1,050</strong></td>
+                <td><strong>52%</strong></td>
+              </tr>
+            </tbody>
+          </table>
+
+          <!-- Control buttons -->
+          <div class="table-actions">
+            <button id="editBtn" class="btn-action edit"><i class="fas fa-edit"></i> Edit</button>
+            <button id="deleteBtn" class="btn-action delete"><i class="fas fa-trash-alt"></i> Delete</button>
+          </div>
+        </div>
+
+        <!-- EDIT MODAL -->
+        <div id="editModal" class="modal hidden" aria-hidden="true">
+          <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="editModalTitle">
+            <h3 id="editModalTitle">Edit Item</h3>
+            <div class="modal-field">
+              <label for="editAmountInput" style="display:block;margin-bottom:6px;color:#ddd">Amount (₱)</label>
+              <input id="editAmountInput" type="number" step="0.01" />
+            </div>
+            <div class="modal-actions">
+              <button id="saveEditBtn" class="btn-primary">Save</button>
+              <button id="cancelEditBtn" class="btn-cancel">Cancel</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- DELETE CONFIRM -->
+        <div id="deleteModal" class="modal hidden" aria-hidden="true">
+          <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="deleteModalTitle">
+            <h3 id="deleteModalTitle">Delete Item</h3>
+            <p id="deleteModalText">Are you sure you want to delete this item?</p>
+            <div class="modal-actions">
+              <button id="confirmDeleteBtn" class="btn-danger">Delete</button>
+              <button id="cancelDeleteBtn" class="btn-cancel">Cancel</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Toast container (created dynamically) -->
+      </section>
+    </main>
+  </div>
+
+  <!-- Existing site script (keep it) -->
+  <script src="script.js"></script>
+
+  <!-- Budget-specific script (safe, wrapped and defensive) -->
+  <script>
+  (function () {
+    document.addEventListener('DOMContentLoaded', () => {
+      try {
+        // Elements (safely get them)
+        const _table = document.getElementById('budgetTable');
+        const _editBtn = document.getElementById('editBtn');
+        const _deleteBtn = document.getElementById('deleteBtn');
+        const _editModal = document.getElementById('editModal');
+        const _deleteModal = document.getElementById('deleteModal');
+        const _editAmountInput = document.getElementById('editAmountInput');
+        const _saveEditBtn = document.getElementById('saveEditBtn');
+        const _cancelEditBtn = document.getElementById('cancelEditBtn');
+        const _confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
+        const _cancelDeleteBtn = document.getElementById('cancelDeleteBtn');
+
+        if (!_table) {
+          console.warn('Budget table not found — skipping budget interactions.');
+          return;
+        }
+
+        function showToast(text) {
+          const t = document.createElement('div');
+          t.className = 'toast';
+          t.textContent = text;
+          document.body.appendChild(t);
+          // force reflow to allow transition
+          requestAnimationFrame(() => t.classList.add('show'));
+          setTimeout(() => {
+            t.classList.remove('show');
+            setTimeout(() => t.remove(), 300);
+          }, 2000);
+        }
+
+        // attach rows (live list is fine because rows are static here)
+        const _rows = Array.from(_table.querySelectorAll('tbody tr'));
+        let _selectedRow = null;
+
+        function clearSelection() {
+          _rows.forEach(r => r.classList.remove('selected'));
+          _selectedRow = null;
+        }
+
+        // click to select row
+        _rows.forEach(row => {
+          row.addEventListener('click', (e) => {
+            // ignore clicks on inputs/buttons inside row (if you add them later)
+            if (e.target.tagName === 'BUTTON' || e.target.tagName === 'A' || e.target.tagName === 'INPUT') return;
+            _rows.forEach(r => r.classList.remove('selected'));
+            row.classList.add('selected');
+            _selectedRow = row;
+          });
+        });
+
+        // open edit modal
+        _editBtn?.addEventListener('click', () => {
+          if (!_selectedRow) { showToast('Select a row first'); return; }
+          const current = String((_selectedRow.cells[1]?.textContent || '').replace(/[₱,]/g, '')).trim();
+          _editAmountInput.value = current || '';
+          _editModal.classList.remove('hidden');
+          _editModal.setAttribute('aria-hidden','false');
+          _editAmountInput.focus();
+        });
+
+        // save edit
+        _saveEditBtn?.addEventListener('click', () => {
+          if (!_selectedRow) { _editModal.classList.add('hidden'); return; }
+          const v = _editAmountInput.value.trim();
+          if (v === '' || isNaN(v)) { alert('Enter a valid number'); _editAmountInput.focus(); return; }
+          const formatted = Number(v).toLocaleString();
+          _selectedRow.cells[1].textContent = `₱${formatted}`;
+          _editModal.classList.add('hidden');
+          _editModal.setAttribute('aria-hidden','true');
+          showToast('Item updated');
+        });
+
+        // cancel edit or click outside to close
+        _cancelEditBtn?.addEventListener('click', () => {
+          _editModal.classList.add('hidden');
+          _editModal.setAttribute('aria-hidden','true');
+        });
+        _editModal?.addEventListener('click', (e) => {
+          if (e.target === _editModal) { _editModal.classList.add('hidden'); _editModal.setAttribute('aria-hidden','true'); }
+        });
+
+        // open delete modal
+        _deleteBtn?.addEventListener('click', () => {
+          if (!_selectedRow) { showToast('Select a row first'); return; }
+          const name = _selectedRow.cells[0]?.textContent || 'this item';
+          const textNode = document.getElementById('deleteModalText');
+          if (textNode) textNode.textContent = `Are you sure you want to delete "${name}"?`;
+          _deleteModal.classList.remove('hidden');
+          _deleteModal.setAttribute('aria-hidden','false');
+        });
+
+        // confirm delete
+        _confirmDeleteBtn?.addEventListener('click', () => {
+          if (!_selectedRow) { _deleteModal.classList.add('hidden'); return; }
+          const name = _selectedRow.cells[0]?.textContent || '';
+          _selectedRow.remove();
+          showToast(name ? `${name} deleted` : 'Item deleted');
+          _selectedRow = null;
+          _deleteModal.classList.add('hidden');
+          _deleteModal.setAttribute('aria-hidden','true');
+        });
+
+        // cancel delete
+        _cancelDeleteBtn?.addEventListener('click', () => {
+          _deleteModal.classList.add('hidden');
+          _deleteModal.setAttribute('aria-hidden','true');
+        });
+        _deleteModal?.addEventListener('click', (e) => {
+          if (e.target === _deleteModal) { _deleteModal.classList.add('hidden'); _deleteModal.setAttribute('aria-hidden','true'); }
+        });
+
+        // keyboard: Esc to close modals
+        document.addEventListener('keydown', (e) => {
+          if (e.key === 'Escape') {
+            if (!_editModal.classList.contains('hidden')) { _editModal.classList.add('hidden'); _editModal.setAttribute('aria-hidden','true'); }
+            if (!_deleteModal.classList.contains('hidden')) { _deleteModal.classList.add('hidden'); _deleteModal.setAttribute('aria-hidden','true'); }
+          }
+        });
+
+        console.log('✅ Budget interactions initialized');
+      } catch (err) {
+        console.error('Budget script error:', err);
+      }
+    });
+  })();
+  </script>
+</body>
+</html>
