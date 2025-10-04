@@ -1,5 +1,6 @@
-# Ignore environment files
+# Secrets & system files
 .env
-
-# Ignore Python cache
 __pycache__/
+*.pyc
+*.sqlite3
+*.db
