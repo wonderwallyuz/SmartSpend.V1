@@ -1,5 +1,8 @@
 from openai import OpenAI
 
+client = OpenAI(api_key="sk-proj-XXXXXXXXXXXXXXXXXXXXXXXX")
+
+
 def categorize_expense(description: str, amount: float):
     prompt = f"""
    You are an expense categorization assistant.
