@@ -26,6 +26,14 @@ CREATE TABLE IF NOT EXISTS users (
 )
 """)
 
+c.execute("""
+    CREATE TABLE IF NOT EXISTS budgettbl (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    period TEXT NOT NULL,
+    amount REAL NOT NULL,
+    date TEXT NOT NULL
+)""")
+
 
 
 

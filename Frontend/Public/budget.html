@@ -6,10 +6,11 @@
   <title>Budget - SmartSpend</title>
 
   <!-- CSS -->
-  <link rel="stylesheet" href="../Assets/style.css" />
-  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-  <script src="{{ url_for('static', filename='script.js') }}"></script>
+
+  <link rel="icon" href="../Assets/iconshit.png">
   <!-- Fonts & Icons -->
+   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <script src="{{ url_for('static', filename='ExpenceData.js') }}"></script>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" />
   <script src="https://kit.fontawesome.com/2d9a2c9d4d.js" crossorigin="anonymous"></script>
@@ -98,20 +99,20 @@
         </div>
         <nav>
           <ul class="menu" id="menu">
-            <li class="nav-item" data-name="dashboard">
-              <a href="/dashboard"><span class="material-symbols-outlined">dashboard</span><span class="label">Dashboard</span></a>
+            <li class="menu-item" data-name="dashboard">
+              <a href="{{ url_for('dashboard') }}"><span class="material-symbols-outlined">dashboard</span><span class="label">Dashboard</span></a>
             </li>
             <li class="nav-item" data-name="upload">
-              <a href="/upload"><span class="material-symbols-outlined">upload</span><span class="label">Upload</span></a>
+              <a href="{{ url_for('index') }}"><span class="material-symbols-outlined">upload</span><span class="label">Upload</span></a>
             </li>
             <li class="menu-item active" data-name="budget">
-              <a href="/budget"><span class="material-symbols-outlined">account_balance_wallet</span><span class="label">Budget</span></a>
+              <a href="{{ url_for('bud') }}"><span class="material-symbols-outlined">account_balance_wallet</span><span class="label">Budget</span></a>
             </li>
             <li class="nav-item" data-name="reports">
-              <a href="/reports"><span class="material-symbols-outlined">assignment</span><span class="label">Reports</span></a>
+              <a href="{{ url_for('reports') }}"><span class="material-symbols-outlined">assignment</span><span class="label">Reports</span></a>
             </li>
             <li class="nav-item" data-name="logout">
-              <a href="/logout"><span class="material-symbols-outlined">logout</span><span class="label">Logout</span></a>
+              <a href="{{ url_for('logout') }}"><span class="material-symbols-outlined">logout</span><span class="label">Logout</span></a>
             </li>
           </ul>
         </nav>
@@ -142,8 +143,8 @@
           <div class="user" id="userProfile">
             <div class="avatar"><i class="fas fa-user"></i></div>
             <div class="user-info">
-              <h4>Eva Ombao</h4>
-              <p>Student</p>
+              <h4>{{ username }}</h4>
+              
             </div>
           </div>
         </div>
@@ -152,15 +153,19 @@
       <!-- Add Budget -->
       <section class="budget-card glass animate-fade">
   <h3 class="section-title"><i class="fas fa-wallet"></i> Add Budget</h3>
-  <form id="addBudgetForm" class="budget-form">
-    <input id="periodInput" type="text" placeholder="Budget Period (Weekly/Monthly)" required>
-    <input id="amountInput" type="number" placeholder="Budget Amount" required>
-    <input id="dateInput" type="date" required>
-    <button type="submit" class="btn-primary">
-      <i class="fas fa-plus-circle"></i> Add Budget
-    </button>
+  
+  <!-- Connect form to Flask -->
+  <form action="{{ url_for('submit_budget') }}" method="POST" class="budget-form">
+      <input type="text" name="period" placeholder="Budget Period (Weekly/Monthly)" required />
+      <input type="number" name="amount" placeholder="Amount (₱)" step="0.01" required />
+      <input type="date" name="date" required />
+      
+      <button type="submit" class="btn-primary">
+        <i class="fas fa-plus-circle"></i> Add Budget
+      </button>
   </form>
 </section>
+
 
 
       <!-- Bottom Area -->
@@ -173,30 +178,39 @@
           </div>
 
           <div class="progress-bar">
-            <div class="progress-fill" style="width: 32%;"></div>
+            <div class="progress-fill" style="width: 50%"></div>
           </div>
-          <p class="progress-label">₱650 spent of ₱2,000</p>
 
-          <div class="summary-grid">
-            <div class="summary-item">
-              <i class="fas fa-wallet icon"></i>
-              <div>
-                <p>Total Budget</p>
-                <h2>₱2,000</h2>
-              </div>
-            </div>
+          <p class="progress-label">
+  ₱{{ "%.2f"|format(amount) }}
+</p>
+
+<div class="summary-grid">
+  <div class="summary-item">
+    <i class="fas fa-wallet icon"></i>
+    <div>
+      <p>Total Budget</p>
+      <p>
+        {% if amount is not none %}
+          ₱{{ "%.2f"|format(amount) }}
+        {% else %}
+          ₱0.00
+        {% endif %}
+      </p>
+    </div>
+  </div>
             <div class="summary-item">
               <i class="fas fa-arrow-up icon spent"></i>
               <div>
                 <p>Spent</p>
-                <h2>₱650</h2>
+                <p>₱{{ "%.2f"|format(total_spent) }}</p>
               </div>
             </div>
             <div class="summary-item">
               <i class="fas fa-arrow-down icon remaining"></i>
               <div>
                 <p>Remaining</p>
-                <h2>₱1,350</h2>
+                <p>₱{{ "%.2f"|format(remaining) }}</p>
               </div>
             </div>
           </div>
@@ -205,40 +219,26 @@
         <!-- Breakdown Table -->
         <div class="transactions glass animate-up">
           <h3><i class="fas fa-receipt"></i> Budget Breakdown</h3>
-          <table id="budgetTable">
+          <table id="budgettbl">
             <thead>
               <tr>
+                <th>Description</th>
                 <th>Category</th>
                 <th>Amount</th>
                 <th>% of Budget</th>
               </tr>
             </thead>
             <tbody>
-              <tr>
-                <td>Food</td>
-                <td>₱400</td>
-                <td>20%</td>
-              </tr>
-              <tr>
-                <td>Transport</td>
-                <td>₱300</td>
-                <td>15%</td>
-              </tr>
-              <tr>
-                <td>School Supplies</td>
-                <td>₱150</td>
-                <td>7.5%</td>
-              </tr>
-              <tr>
-                <td>Entertainment</td>
-                <td>₱100</td>
-                <td>5%</td>
-              </tr>
-              <tr>
-                <td><strong>Remaining</strong></td>
-                <td><strong>₱1,050</strong></td>
-                <td><strong>52%</strong></td>
-              </tr>
+             {% for desc, cat, amount in expenses %}
+                  <tr>
+                    <td><p>{{ desc }}</p></td>
+                    <td><p>{{ cat }}</p></td>
+                    <td><p>₱{{ "%.2f"|format(amount) }}</p></td>
+                    <td><p>{{ '%.2f' % ((amount / amount) * 100) if amount else '0.00' }}%</p></td>
+                  </tr>
+                {% endfor %}
+                
+              
             </tbody>
           </table>
 

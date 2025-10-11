@@ -9,6 +9,7 @@
 <link rel="stylesheet" href="../Assets/style.css">
 
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <link rel="icon" href="../Assets/iconshit.png">
   <script src="{{ url_for('static', filename='script.js') }}"></script>
 
   <!-- Fonts & Icons -->
@@ -39,7 +40,7 @@
               <a href="{{ url_for('index') }}"><span class="material-symbols-outlined">upload</span><span class="label">Upload</span></a>
             </li>
             <li class="nav-item" data-name="budget">
-              <a href="{{ url_for('budget') }}"><span class="material-symbols-outlined">account_balance_wallet</span><span class="label">Budget</span></a>
+              <a href="{{ url_for('bud') }}"><span class="material-symbols-outlined">account_balance_wallet</span><span class="label">Budget</span></a>
             </li>
             <li class="nav-item" data-name="reports">
               <a href="{{ url_for('reports') }}"><span class="material-symbols-outlined">assignment</span><span class="label">Reports</span></a>
@@ -65,15 +66,14 @@
           <button class="toggle-btn" id="toggleSidebarBtn" aria-label="Toggle sidebar">
             <i class="fas fa-bars"></i>
           </button>
-          <h2 class="page-title">Hello, Eva <span class="wave"></span></h2>
+          <h2 class="page-title">Hello, {{ username }}!<span class="wave"></span></h2>
         </div>
 
         <div class="right">
           <div class="user" id="userProfile" tabindex="0" role="button" aria-haspopup="true" aria-expanded="false">
             <div class="avatar"><i class="fas fa-user"></i></div>
             <div class="user-info">
-              <h4>Eva Ombao</h4>
-              <p>Student</p>
+              <h4>{{ username }}</h4>
             </div>
           </div>
 
@@ -95,16 +95,16 @@
         <h3 class="section-title"><i class="fas fa-wallet"></i> Budget Overview</h3>
         <div class="budget-info">
           <div class="stat-box">
-            <p class="stat-label">Weekly Budget</p>
-            <h3 class="stat-value">₱2,000</h3>
+            <p class="stat-label">Budget</p>
+            <h3 class="stat-value"><p>{{ budget_amount }}</p></h3>
           </div>
           <div class="stat-box">
             <p class="stat-label">Remaining</p>
-            <h3 class="stat-value">₱1,350</h3>
+            <h3 class="stat-value"><p>{{ budget_remaining }}</p></h3>
           </div>
           <div class="stat-box">
             <p class="stat-label">Spent</p>
-            <h3 class="stat-value">₱650</h3>
+            <h3 class="stat-value"><p>{{ budget_spent }}</p></h3>
           </div>
         </div>
       </section>

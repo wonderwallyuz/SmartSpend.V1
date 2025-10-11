@@ -6,6 +6,7 @@
   <title>Upload - SmartSpend</title>
 
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <link rel="icon" href="../Assets/iconshit.png">
   <script src="{{ url_for('static', filename='ExpenceData.js') }}"></script>
   <link rel="stylesheet" href="../Assets/style.css" />
 
@@ -59,8 +60,7 @@
           <div class="user">
             <div class="avatar"><i class="fas fa-user"></i></div>
             <div class="user-info">
-              <h4>Eva Ombao</h4>
-              <p>Student</p>
+              <h4>{{ username }}</h4>
             </div>
           </div>
         </div>

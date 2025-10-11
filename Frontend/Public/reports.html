@@ -8,6 +8,7 @@
   <!-- CSS -->
   <link rel="stylesheet" href="../Assets/style.css" />
    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+   <link rel="icon" href="../Assets/iconshit.png">
   <script src="{{ url_for('static', filename='script.js') }}"></script>
 
   <!-- Fonts & Icons -->
@@ -155,8 +156,7 @@
           <div class="user" id="userProfile" tabindex="0" role="button" aria-haspopup="true" aria-expanded="false">
             <div class="avatar"><i class="fas fa-user"></i></div>
             <div class="user-info">
-              <h4>Eva Ombao</h4>
-              <p>Student</p>
+              <h4>{{ username }}</h4>
             </div>
           </div>
 

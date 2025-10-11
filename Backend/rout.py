@@ -3,11 +3,14 @@ import sqlite3
 from flask import Flask, render_template, request, flash, session, json
 from flask import redirect, url_for
 from ML.MLmodel import categorize_expense
+from flask import session
+from flask import session, redirect, url_for, flash
 
 # --- Paths ---
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 TEMPLATE_DIR = os.path.join(BASE_DIR, "../Frontend/Public")
 DB_PATH = os.path.join(BASE_DIR, "../DataBase/expenses.db")
+app = Flask(__name__, template_folder="../Frontend/Public", static_folder="../Frontend/Public")
 
 
 
@@ -41,7 +44,6 @@ def login():
         cur.execute("SELECT id, username FROM users WHERE email = ? AND password = ?", (email, password))
         user = cur.fetchone()
         conn.close()
-
         if user:
             session["user_id"] = user[0]   # use id
             session["username"] = user[1]  # store username
@@ -86,18 +88,14 @@ def signup():
 
     return render_template("signup.html")
 
-
-
-
-
-
-@app.route('/budget')
-def budget():   
-    return render_template("budget.html")
-
 @app.route('/reports')
 def reports():    
-    return render_template("reports.html")
+    username = session.get('username')
+    if not username:
+        # If user is not logged in, redirect them to login or show error
+        flash("You must be logged in to view dashboard.", "error")
+        return redirect(url_for('login'))
+    return render_template("reports.html", username=username,)
 
 
 
@@ -105,18 +103,25 @@ def reports():
 
 @app.route('/upload')
 def index():
+    username = session.get('username')
+    if not username:
+        # If user is not logged in, redirect them to login or show error
+        flash("You must be logged in to view dashboard.", "error")
+        return redirect(url_for('login'))
     conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
-    c.execute("SELECT description, amount, date, category FROM expenses ORDER BY id DESC LIMIT 5")
+    c.execute("SELECT description, amount, date, category FROM expenses ORDER BY id DESC")
     expenses = c.fetchall()
     conn.close()
-    return render_template("upload.html", expenses=expenses)
-
-
-
+    return render_template("upload.html", expenses=expenses, username=username)
 
 @app.route('/dashboard')
-def dashboard():
+def dashboard():  
+    username = session.get('username')
+    if not username:
+        # If user is not logged in, redirect them to login or show error
+        flash("You must be logged in to view dashboard.", "error")
+        return redirect(url_for('login'))
     conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
     # fetch all expenses
@@ -126,15 +131,47 @@ def dashboard():
     # count transactions per category instead of summing amounts
     c.execute("SELECT category, COUNT(*) FROM expenses GROUP BY category")
     category_counts = c.fetchall()
-    conn.close()
+    
+    c.execute("SELECT amount FROM budgettbl ORDER BY id DESC LIMIT 1")
+    row = c.fetchone()
+    if row and row[0] is not None:
+        try:
+            latest_amount = float(row[0])
+        except (ValueError, TypeError):
+            latest_amount = 0.0
+    else:
+        latest_amount = 0.0
+        
+    c.execute("SELECT SUM(amount) FROM expenses")
+    sum_row = c.fetchone()
+    if sum_row and sum_row[0] is not None:
+        total_spent = sum_row[0]
+    else:
+        total_spent = 0.0
+        
+    remaining = latest_amount - total_spent
+    if remaining < 0:
+        remaining = 0.0
+        
+    c.execute("SELECT description, amount, category FROM expenses ORDER BY id DESC")
+    expenses = c.fetchall()
 
+    c.execute("SELECT category, COUNT(*) FROM expenses GROUP BY category")
+    category_counts = c.fetchall()
+    
+    conn.close()
     # turn into dict {category: count}
     category_data = {cat: count for cat, count in category_counts}
 
     return render_template(
         "dashboard.html",
+        username=username,
         expenses=expenses,
-        category_data=json.dumps(category_data)
+        category_data=json.dumps(category_data),
+        budget_amount=latest_amount,
+        budget_spent=total_spent,
+        budget_remaining=remaining
+
     )
 
 @app.route('/submit-expense', methods=['POST'])
@@ -150,27 +187,58 @@ def submit_expense():
     c.execute("INSERT INTO expenses (description, amount, date, category) VALUES (?, ?, ?, ?)",
               (desc, amount, date, category))
     conn.commit()
+    
+    c.execute("SELECT SUM(amount) FROM expenses")
+    sum_row = c.fetchone()
+    total_spent = sum_row[0] if sum_row and sum_row[0] is not None else 0.0
+    conn.close()
     conn.close()
 
-    return redirect(url_for('index'))
+    return redirect(url_for('index', total_spent=total_spent))
 
 
 #profile section
 @app.route('/profile')
 def profile():
-    return render_template("profile.html")
+    print("DEBUG session:", dict(session))   # print everything in session
+    username = session.get('username')
+    email = session.get('email')
+    print("DEBUG username:", username, "email:", email)
+
+    if not username:
+        flash("You must be logged in to view dashboard.", "error")
+        return redirect(url_for('login'))
+    if email:
+        flash("Please log in first", "error")
+        return redirect(url_for('login'))
+    return render_template("profile.html", username=username, email=email)
 
 @app.route('/settings')
 def settings():
-    return render_template("settings.html")
+    username = session.get('username')
+    if not username:
+        # If user is not logged in, redirect them to login or show error
+        flash("You must be logged in to view dashboard.", "error")
+        return redirect(url_for('login'))
+    return render_template("settings.html", username=username)
 
 @app.route('/help')
 def help():
-    return render_template("help.html")
+    username = session.get('username')
+    if not username:
+        # If user is not logged in, redirect them to login or show error
+        flash("You must be logged in to view dashboard.", "error")
+        return redirect(url_for('login'))
+    return render_template("help.html", username=username)
 
 @app.route('/logout')
 def logout():
-    return render_template("logout.html")
+    username = session.get('username')
+    if not username:
+        # If user is not logged in, redirect them to login or show error
+        flash("You must be logged in to view dashboard.", "error")
+        return redirect(url_for('login'))
+    return render_template("logout.html", username=username)
 
 @app.route('/getting-started')
 def getting_started():
@@ -183,6 +251,84 @@ def contact():
 @app.route('/FAQ')
 def FAQ():
     return render_template("faq.html")
+
+@app.route('/budget')
+def bud():
+    username = session.get('username')
+    if not username:
+        # If user is not logged in, redirect them to login or show error
+        flash("You must be logged in to view dashboard.", "error")
+        return redirect(url_for('login'))
+    conn = sqlite3.connect(DB_PATH)
+    c = conn.cursor()
+    total_spent = 0.0
+    descriptions = []  # List to hold description values
+    categories = [] 
+    # Retrieve the latest budget entry
+    c.execute("SELECT period, amount, date FROM budgettbl ORDER BY id DESC")
+    budget_row = c.fetchone()
+    
+    # Initialize latest_amount to 0.0 if no budget entry exists
+    latest_amount = 0.0
+    if budget_row:
+        try:
+            latest_amount = float(budget_row[1])
+        except (ValueError, TypeError):
+            latest_amount = 0.0
+            
+    # Retrieve the total amount spent from expenses
+    c.execute("SELECT SUM(amount) FROM expenses")
+    sum_row = c.fetchone()
+    total_spent = sum_row[0] if sum_row and sum_row[0] is not None else 0.0
+    
+    c.execute("SELECT description, category, amount FROM expenses ORDER BY id DESC")
+    expense_rows = c.fetchall()
+    for row in expense_rows:
+        descriptions.append(row[0])  # Description
+        categories.append(row[1])
+
+    conn.close()
+
+    # Calculate remaining amount
+    remaining = latest_amount - total_spent
+    if remaining < 0:
+        remaining = 0.0
+
+    return render_template(
+        "budget.html",
+        amount=latest_amount,
+        total_spent=total_spent,
+        remaining=remaining,
+        expenses=expense_rows,
+        descriptions=descriptions,
+        categories=categories,
+        username=username
+    )
+
+@app.route('/submit-budget', methods=['POST'])
+def submit_budget():
+    print("DEBUG form data:", request.form) 
+    period = request.form.get('period')
+    amount_str = request.form.get('amount')
+    date = request.form.get('date')
+
+    if not (period and amount_str and date):
+        return "Missing form data", 400
+    try:
+        amount = float(amount_str)
+    except ValueError:
+        return "Invalid amount", 400
+
+    conn = sqlite3.connect(DB_PATH)
+    c = conn.cursor()
+    c.execute(
+        "INSERT INTO budgettbl (period, amount, date) VALUES (?, ?, ?)",
+        (period, amount, date)
+    )
+    conn.commit()
+    conn.close()
+
+    return redirect(url_for('bud'))
 
 
 if __name__ == "__main__":
