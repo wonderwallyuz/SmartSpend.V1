@@ -95,6 +95,8 @@ def signup():
 def budget():   
     return render_template("budget.html")
 
+
+
 @app.route('/reports')
 def reports():    
     return render_template("reports.html")
@@ -105,54 +107,98 @@ def reports():
 
 @app.route('/upload')
 def index():
+    if "user_id" not in session:
+        flash("Please log in first!", "warning")
+        return redirect(url_for("login"))
+
     conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
-    c.execute("SELECT description, amount, date, category FROM expenses ORDER BY id DESC LIMIT 5")
+    c.execute("""
+        SELECT description, amount, date, category
+        FROM expenses
+        WHERE user_id = ?
+        ORDER BY id DESC
+        LIMIT 5
+    """, (session["user_id"],))
     expenses = c.fetchall()
     conn.close()
-    return render_template("upload.html", expenses=expenses)
+
+    return render_template("upload.html", expenses=expenses, username=session["username"])
 
 
 
 
 @app.route('/dashboard')
 def dashboard():
+    # ✅ Check if user is logged in
+    if "user_id" not in session:
+        flash("Please log in first!", "error")
+        return redirect(url_for("login"))
+
+    username = session["username"]
+    user_id = session["user_id"]
+
+    # ✅ Connect to DB and fetch data for this user only
     conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
-    # fetch all expenses
-    c.execute("SELECT description, amount, category FROM expenses ORDER BY id DESC")
+
+    # Fetch all expenses belonging to the logged-in user
+    c.execute("""
+        SELECT description, amount, category
+        FROM expenses
+        WHERE user_id = ?
+        ORDER BY id DESC
+    """, (user_id,))
     expenses = c.fetchall()
 
-    # count transactions per category instead of summing amounts
-    c.execute("SELECT category, COUNT(*) FROM expenses GROUP BY category")
+    # Count transactions per category for this user only
+    c.execute("""
+        SELECT category, COUNT(*)
+        FROM expenses
+        WHERE user_id = ?
+        GROUP BY category
+    """, (user_id,))
     category_counts = c.fetchall()
     conn.close()
 
-    # turn into dict {category: count}
+    # Convert to dict {category: count}
     category_data = {cat: count for cat, count in category_counts}
 
+    # ✅ Pass username and user data to template
     return render_template(
         "dashboard.html",
+        username=username,
         expenses=expenses,
         category_data=json.dumps(category_data)
     )
 
+
 @app.route('/submit-expense', methods=['POST'])
 def submit_expense():
+    if "user_id" not in session:
+        flash("Please log in first!", "warning")
+        return redirect(url_for("login"))
+
     desc = request.form.get('desc')
     amount = float(request.form.get('amount'))
     date = request.form.get('date')
 
+    # Categorize automatically
     category = categorize_expense(desc, amount)
 
+    # Save to database with user_id
     conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
-    c.execute("INSERT INTO expenses (description, amount, date, category) VALUES (?, ?, ?, ?)",
-              (desc, amount, date, category))
+    c.execute("""
+        INSERT INTO expenses (user_id, description, amount, date, category)
+        VALUES (?, ?, ?, ?, ?)
+    """, (session["user_id"], desc, amount, date, category))
     conn.commit()
     conn.close()
 
+    flash("Expense added successfully!", "success")
     return redirect(url_for('index'))
+
 
 
 #profile section
@@ -168,9 +214,12 @@ def settings():
 def help():
     return render_template("help.html")
 
-@app.route('/logout')
+@app.route("/logout")
 def logout():
-    return render_template("logout.html")
+    session.clear()
+    flash("You have been logged out.", "info")
+    return redirect(url_for("login"))
+
 
 @app.route('/getting-started')
 def getting_started():
