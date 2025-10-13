@@ -89,12 +89,6 @@ def signup():
     return render_template("signup.html")
 
 
-
-
-
-
-
-
 @app.route('/reports')
 def reports():    
     username = session.get('username')
