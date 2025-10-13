@@ -18,6 +18,139 @@
 
   <!-- ChartJS -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <style>
+    body {
+      overflow-y: auto;
+    }
+        /* Prevent sidebar from scrolling */
+    .sidebar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    /* Push main content so it doesn't go behind sidebar */
+    .main {
+      margin-left: 260px; /* adjust if your sidebar is a different width */
+    }
+
+
+    /* Notification button */
+    .notification {
+      position: relative;
+      margin-right: 25px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .notification .material-symbols-outlined {
+      font-size: 28px;
+      color: #fff;
+      transition: all 0.3s ease;
+      text-shadow: 0 0 6px rgba(255, 0, 255, 0.3);
+    }
+    .notification:hover .material-symbols-outlined {
+      color: #ff77ff;
+      text-shadow: 0 0 12px rgba(255, 77, 255, 0.8);
+      transform: scale(1.1);
+    }
+    .notification .badge {
+      position: absolute;
+      top: -4px;
+      right: -6px;
+      background: linear-gradient(135deg, #ff4d4d, #ff8b8b);
+      color: #fff;
+      border-radius: 50%;
+      min-width: 18px;
+      height: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 700;
+      box-shadow: 0 0 6px rgba(255, 77, 77, 0.8);
+    }
+
+    /* Notification panel */
+    .notif-panel {
+      position: absolute;
+      top: 70px;
+      right: 40px;
+      width: 320px;
+      background: rgba(90, 50, 150, 0.25);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 16px;
+      box-shadow: 0 4px 30px rgba(0, 0, 0, 0.4);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      color: #fff;
+      padding: 15px 18px;
+      display: none;
+      z-index: 999;
+      animation: fadeIn 0.3s ease;
+    }
+    .notif-panel.active {
+      display: block;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .notif-panel h4 {
+      font-size: 15px;
+      font-weight: 700;
+      margin-bottom: 12px;
+      padding-bottom: 6px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+      color: #f0d9ff;
+      letter-spacing: 0.5px;
+    }
+
+    /* Notification items */
+    .notif-item {
+      background: rgba(255, 255, 255, 0.1);
+      padding: 12px 14px;
+      border-radius: 10px;
+      margin-bottom: 10px;
+      font-size: 13px;
+      border-left: 3px solid transparent;
+      transition: all 0.3s ease;
+    }
+    .notif-item.alert {
+      border-left-color: #ff4d4d;
+      box-shadow: 0 0 10px rgba(255, 77, 77, 0.3);
+    }
+    .notif-item.tip {
+      border-left-color: #4da6ff;
+      box-shadow: 0 0 10px rgba(77, 166, 255, 0.3);
+    }
+    .notif-item.good {
+      border-left-color: #33cc99;
+      box-shadow: 0 0 10px rgba(51, 204, 153, 0.3);
+    }
+    .notif-item:hover {
+      transform: scale(1.02);
+      background: rgba(255, 255, 255, 0.15);
+    }
+
+    .notif-empty {
+      text-align: center;
+      font-size: 13px;
+      color: rgba(255,255,255,0.7);
+      padding: 10px;
+      animation: fadeIn 0.4s ease;
+    }
+
+    .content-section {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+  </style>
 </head>
 <body>
   <div class="background"></div>
@@ -69,7 +202,12 @@
         </div>
 
         <div class="right">
-          <div class="user" id="userProfile" tabindex="0" role="button" aria-haspopup="true" aria-expanded="false">
+          <div class="notification" id="notifBtn">
+            <span class="material-symbols-outlined">notifications</span>
+            <span class="badge" id="notifCount">0</span>
+          </div>
+
+          <div class="user" id="userProfile">
             <div class="avatar"><i class="fas fa-user"></i></div>
             <div class="user-info">
               <h4>Eva Ombao</h4>
@@ -87,31 +225,42 @@
 </div>
 
 
+        <div class="notif-panel" id="notifPanel">
+          <h4>Notifications</h4>
+          <div id="notifList" class="notif-list"></div>
         </div>
       </header>
 
-      <!-- Budget overview -->
-      <section class="budget-card glass animate-fade">
-        <h3 class="section-title"><i class="fas fa-wallet"></i> Budget Overview</h3>
-        <div class="budget-info">
-          <div class="stat-box">
-            <p class="stat-label">Weekly Budget</p>
-            <h3 class="stat-value">₱2,000</h3>
+      <section class="content-section">
+        <!-- Budget Overview -->
+        <section class="budget-card glass animate-fade">
+          <h3 class="section-title"><i class="fas fa-wallet"></i> Budget Overview</h3>
+          <div class="budget-info">
+            <div class="stat-box">
+              <p class="stat-label">Weekly Budget</p>
+              <h3 class="stat-value" id="weeklyBudget">₱2,000</h3>
+            </div>
+            <div class="stat-box">
+              <p class="stat-label">Remaining</p>
+              <h3 class="stat-value" id="remaining">₱1,350</h3>
+            </div>
+            <div class="stat-box">
+              <p class="stat-label">Spent</p>
+              <h3 class="stat-value" id="spent">₱650</h3>
+            </div>
           </div>
-          <div class="stat-box">
-            <p class="stat-label">Remaining</p>
-            <h3 class="stat-value">₱1,350</h3>
-          </div>
-          <div class="stat-box">
-            <p class="stat-label">Spent</p>
-            <h3 class="stat-value">₱650</h3>
-          </div>
-        </div>
-      </section>
+        </section>
 
-      <!-- Bottom area -->
-      <section class="bottom">
-        <div class="transactions glass animate-up">
+        <!-- Pie Chart -->
+        <section class="chart-container glass animate-up">
+          <h3><i class="fas fa-chart-pie"></i> Expense</h3>
+          <div class="chart-box">
+            <canvas id="expenseChart"></canvas>
+          </div>
+        </section>
+
+        <!-- Recent Transactions -->
+        <section class="transactions glass animate-up">
           <h3><i class="fas fa-receipt"></i> Recent Transactions</h3>
           <table>
             <thead>
@@ -131,20 +280,58 @@
               {% endfor %}
             </tbody>
           </table>
-        </div>
-
-        <div class="chart-container glass animate-up">
-          <h3><i class="fas fa-chart-pie"></i> Expense</h3>
-          <div class="chart-box">
-            <canvas id="expenseChart" aria-label="Expense breakdown chart" role="img"></canvas>
-          </div>
-        </div>
+        </section>
       </section>
     </main>
   </div>
 
   <!-- JS -->
-  <script src="../Assets/script.js"></script>
+  <script>
+    const notifBtn = document.getElementById('notifBtn');
+    const notifPanel = document.getElementById('notifPanel');
+    const notifList = document.getElementById('notifList');
+    const notifCount = document.getElementById('notifCount');
+
+    const weeklyBudget = 2000;
+    const spent = 1650;
+    const remaining = weeklyBudget - spent;
+    const ratio = spent / weeklyBudget;
+
+    const notifications = [];
+
+    if (ratio >= 0.8) {
+      notifications.push({ type: 'alert', text: 'You have spent over 80% of your weekly budget. Try to reduce spending.' });
+    } else if (ratio >= 0.5) {
+      notifications.push({ type: 'tip', text: 'You have used over 50% of your weekly budget. Plan your remaining days carefully.' });
+    } else {
+      notifications.push({ type: 'good', text: 'Good job! You are spending wisely within your budget.' });
+    }
+
+    if (remaining < 300) {
+      notifications.push({ type: 'alert', text: 'Your remaining balance is below ₱300. Consider limiting expenses.' });
+    }
+
+    if (notifications.length > 0) {
+      notifList.innerHTML = notifications.map(n => `<div class="notif-item ${n.type}">${n.text}</div>`).join('');
+      notifCount.textContent = notifications.length;
+    } else {
+      notifList.innerHTML = `<div class="notif-empty">No new notifications</div>`;
+      notifCount.style.display = 'none';
+    }
+
+    notifBtn.addEventListener('click', () => {
+      notifPanel.classList.toggle('active');
+      notifCount.style.display = 'none';
+    });
+
+    document.addEventListener('click', (e) => {
+      if (!notifPanel.contains(e.target) && !notifBtn.contains(e.target)) {
+        notifPanel.classList.remove('active');
+      }
+    });
+  </script>
+
+  <script src="script.js"></script>
 </body>
 </html>
 
