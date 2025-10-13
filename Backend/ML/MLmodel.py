@@ -1,13 +1,7 @@
-import os
+
 from openai import OpenAI
-from dotenv import load_dotenv
 
-# Load environment variables from .env file (optional but recommended)
-load_dotenv()
-
-# ✅ Use environment variable instead of hardcoding the key
-
-client = OpenAI(api_key="yourAPIKEy")
+client = OpenAI(api_key="productkey")
 def categorize_expense(description: str, amount: float):
     prompt = f"""
         You are an intelligent expense categorization assistant.

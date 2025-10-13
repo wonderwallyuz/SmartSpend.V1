@@ -228,19 +228,21 @@
                 <th>% of Budget</th>
               </tr>
             </thead>
-            <tbody>
-             {% for desc, cat, amount in expenses %}
-                  <tr>
-                    <td><p>{{ desc }}</p></td>
-                    <td><p>{{ cat }}</p></td>
-                    <td><p>₱{{ "%.2f"|format(amount) }}</p></td>
-                    <td><p>{{ '%.2f' % ((amount / amount) * 100) if amount else '0.00' }}%</p></td>
-                  </tr>
-                {% endfor %}
-                
-              
-            </tbody>
-          </table>
+           <tbody>
+  {% for desc, cat, total_amount in expenses %}
+    <tr>
+      <td><p>{{ desc }}</p></td>
+      <td><p>{{ cat }}</p></td>
+      <td><p>₱{{ "%.2f"|format(total_amount) }}</p></td>
+      <td>
+        <p>
+          {{ '%.2f' % ((total_amount / amount) * 100) if amount else '0.00' }}%
+        </p>
+      </td>
+    </tr>
+  {% endfor %}
+</tbody>
+
 
           <!-- Control buttons -->
           <div class="table-actions">

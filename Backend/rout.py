@@ -293,54 +293,49 @@ def FAQ():
 def bud():
     username = session.get('username')
     if not username:
-        # If user is not logged in, redirect them to login or show error
         flash("You must be logged in to view dashboard.", "error")
         return redirect(url_for('login'))
+
     conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
-    total_spent = 0.0
-    descriptions = []  # List to hold description values
-    categories = [] 
-    # Retrieve the latest budget entry
+
+    # Get latest budget
     c.execute("SELECT period, amount, date FROM budgettbl ORDER BY id DESC")
     budget_row = c.fetchone()
-    
-    # Initialize latest_amount to 0.0 if no budget entry exists
-    latest_amount = 0.0
-    if budget_row:
-        try:
-            latest_amount = float(budget_row[1])
-        except (ValueError, TypeError):
-            latest_amount = 0.0
-            
-    # Retrieve the total amount spent from expenses
+    latest_amount = float(budget_row[1]) if budget_row and budget_row[1] else 0.0
+
+    # Get total spent
     c.execute("SELECT SUM(amount) FROM expenses")
     sum_row = c.fetchone()
-    total_spent = sum_row[0] if sum_row and sum_row[0] is not None else 0.0
-    
-    c.execute("SELECT description, category, amount FROM expenses ORDER BY id DESC")
-    expense_rows = c.fetchall()
-    for row in expense_rows:
-        descriptions.append(row[0])  # Description
-        categories.append(row[1])
+    total_spent = sum_row[0] if sum_row and sum_row[0] else 0.0
+
+    # ✅ Group by category, sum amounts, and combine descriptions
+    c.execute("""
+        SELECT 
+            GROUP_CONCAT(description, ', '), 
+            category, 
+            SUM(amount) AS total_amount
+        FROM expenses
+        GROUP BY category
+        ORDER BY total_amount DESC
+    """)
+    grouped_expenses = c.fetchall()  # → (descriptions, category, total_amount)
 
     conn.close()
 
-    # Calculate remaining amount
-    remaining = latest_amount - total_spent
-    if remaining < 0:
-        remaining = 0.0
+    # Calculate remaining
+    remaining = max(latest_amount - total_spent, 0.0)
 
     return render_template(
         "budget.html",
         amount=latest_amount,
         total_spent=total_spent,
         remaining=remaining,
-        expenses=expense_rows,
-        descriptions=descriptions,
-        categories=categories,
+        expenses=grouped_expenses,  # (desc, cat, amount)
         username=username
     )
+
+
 
 @app.route('/submit-budget', methods=['POST'])
 def submit_budget():
