@@ -1,51 +1,64 @@
+import os
 from openai import OpenAI
+from dotenv import load_dotenv
 
+# Load environment variables from .env file (optional but recommended)
+load_dotenv()
+
+# ✅ Use environment variable instead of hardcoding the key
+
+client = OpenAI(api_key="yourAPIKEy")
 def categorize_expense(description: str, amount: float):
     prompt = f"""
-   You are an expense categorization assistant.
+        You are an intelligent expense categorization assistant.
 
-    Categorize the following expense into one of these categories:
-    [Food, Transportation, Utilities, Entertainment, Health, Shopping, Education, Bills, Other].
+Your task is to determine the most suitable expense category for a given description.
+If the expense does not clearly fit into the common categories below, intelligently CREATE a new category name that best represents it.
 
-    Rules:
-    - The description may be written in English, Filipino/Tagalog, or Cebuano/Bisaya.
-    - Always classify based on the most common everyday meaning in the context of personal spending.
-    - Do NOT return explanations, only the category name.
-    - Use "Other" only if it truly does not fit into any of the listed categories.
-    - If the description is vague but suggests a common category, choose that category.
-    
-    
-    ### Examples:
-    - "lapis" → Education
-    - "hotdog" → Food
-    - "pamasahe" → Transportation
-    - "pliti" (Cebuano for fare) → Transportation
-    - "kuryente" → Utilities
-    - "suga" (Cebuano for electricity/light) → Utilities
-    - "gamot" → Health
-    - "bayad sa tubig" → Bills
-    - "bayad sa kuryente" → Bills
-    - "bayad" (if clearly about monthly obligations) → Bills
-    - "if theres a word bayad"  → bills
-    - "netflix subscription" → Entertainment
-    - "sapatos" → Shopping
-    - "movie ticket" → Entertainment
+Common categories include:
+[Food, Transportation, Utilities, Entertainment, Health, Shopping, Education, Bills]
 
-    ### Task:
-    Description: "{description}"
-    Amount: {amount}
+Rules:
+- The description may be written in English, Filipino/Tagalog, or Cebuano/Bisaya.
+- Always infer meaning based on the most likely real-world spending context.
+- Do NOT output explanations — only the category name.
+- NEVER output "Other".
+- If a new category fits better than the ones above, create it (e.g., "Pet Care", "Travel", "Donations", "Maintenance", etc.).
+- Be consistent — similar descriptions should yield the same category.
 
-    Answer with only the category.
-    """
+### Examples:
+- "lapis" → Education
+- "hotdog" → Food
+- "pamasahe" → Transportation
+- "pliti" (Cebuano for fare) → Transportation
+- "kuryente" → Utilities
+- "suga" (Cebuano for electricity/light) → Utilities
+- "gamot" → Health
+- "bayad sa tubig" → Bills
+- "bayad sa kuryente" → Bills
+- "bayad" (if referring to recurring obligations) → Bills
+- "netflix subscription" → Entertainment
+- "sapatos" → Shopping
+- "movie ticket" → Entertainment
+- "dog food" → Pet Care
+- "airplane ticket" → Travel
+- "church donation" → Donations
+
+### Task:
+Description: "{description}"
+Amount: {amount}
+
+Answer with only the category name.
+"""
 
     response = client.chat.completions.create(
-        model="gpt-4o-mini",
+        model="gpt-5-mini",
         messages=[
-            {"role": "system", "content": "You are a financial assistant that classifies expenses."},
-            {"role": "user", "content": prompt}
-        ],
-        max_tokens=20,
-        temperature=0
-    )
+        {"role": "system", "content": "You are a financial assistant that classifies expenses."},
+        {"role": "user", "content": prompt}
+    ],
+    max_completion_tokens=500,
+    
+)
 
     return response.choices[0].message.content.strip()
