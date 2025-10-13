@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Upload - SmartSpend</title>x
+  <title>Upload - SmartSpend</title>
 
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
   <script src="{{ url_for('static', filename='ExpenceData.js') }}"></script>
@@ -18,115 +18,178 @@
 
   <div class="dashboard">
     <!-- Sidebar -->
-    <aside class="sidebar">
+    <aside class="sidebar" id="sidebar" aria-label="Main Navigation">
       <div class="top-group">
         <div class="logo">
           <img src="../Assets/logosmartspend.png" alt="SmartSpend Logo">
         </div>
         <nav>
-          <ul class="menu">
-            <li class="menu-item" data-name="dashboard">
-              <a href="dashboard.html"><span class="material-symbols-outlined">dashboard</span><span class="label">Dashboard</span></a>
+          <ul class="menu" id="menu">
+            <li class="menu-item {% if request.path == '/' %}active{% endif %}" data-name="dashboard">
+              <a href="{{ url_for('dashboard') }}">
+                <span class="material-symbols-outlined">dashboard</span>
+                <span class="label">Dashboard</span>
+              </a>
             </li>
-            <li class="menu-item active" data-name="upload">
-              <a href="#"><span class="material-symbols-outlined">upload</span><span class="label">Upload</span></a>
+
+            <li class="menu-item {% if request.path == '/upload' %}active{% endif %}" data-name="upload">
+              <a href="{{ url_for('upload') }}">
+                <span class="material-symbols-outlined">upload</span>
+                <span class="label">Upload</span>
+              </a>
             </li>
-            <li class="menu-item" data-name="budget">
-              <a href="#"><span class="material-symbols-outlined">account_balance_wallet</span><span class="label">Budget</span></a>
+
+            <li class="menu-item {% if request.path == '/budget' %}active{% endif %}" data-name="budget">
+              <a href="{{ url_for('budget') }}">
+                <span class="material-symbols-outlined">account_balance_wallet</span>
+                <span class="label">Budget</span>
+              </a>
             </li>
-            <li class="menu-item" data-name="reports">
-              <a href="#"><span class="material-symbols-outlined">assignment</span><span class="label">Reports</span></a>
+
+            <li class="menu-item {% if request.path == '/reports' %}active{% endif %}" data-name="reports">
+              <a href="{{ url_for('reports') }}">
+                <span class="material-symbols-outlined">assignment</span>
+                <span class="label">Reports</span>
+              </a>
             </li>
+
             <li class="menu-item" data-name="logout">
-              <a href="#"><span class="material-symbols-outlined">logout</span><span class="label">Logout</span></a>
+              <a href="{{ url_for('logout') }}">
+                <span class="material-symbols-outlined">logout</span>
+                <span class="label">Logout</span>
+              </a>
             </li>
           </ul>
         </nav>
       </div>
     </aside>
-    
 
     <!-- Main -->
     <main class="main">
       <header class="header">
         <h2 class="page-title">Upload & Add Expenses</h2>
         <div class="right">
-          <div class="user">
-            <div class="avatar"><i class="fas fa-user"></i></div>
+          <div class="user" id="userProfile" tabindex="0">
+            <div class="avatar" id="userAvatar"><i class="fas fa-user"></i></div>
             <div class="user-info">
-              <h4>Eva Ombao</h4>
-              <p>Student</p>
+              <h4 id="userName">Eva Ombao</h4>
+              <p id="userRole">Student</p>
             </div>
           </div>
         </div>
       </header>
+
+      <!-- ✅ Dropdown Menu (exactly as requested, no design change) -->
       <div class="profile-menu" id="profileMenu" role="menu" aria-hidden="true">
-  <ul>
-    <li role="menuitem"><a href="profile.html"><i class="fas fa-user"></i> Profile</a></li>
-    <li role="menuitem"><a href="settings.html"><i class="fas fa-cog"></i> Settings</a></li>
-    <li role="menuitem"><a href="help.html"><i class="fas fa-question-circle"></i> Help</a></li>
-    <li role="menuitem"><a href="login.html"><i class="fas fa-sign-out-alt"></i> Log Out</a></li>
-  </ul>
-</div>
-     <!-- Add Expense & Upload -->
+        <ul>
+          <li role="menuitem"><a href="profile.html"><i class="fas fa-user"></i> Profile</a></li>
+          <li role="menuitem"><a href="settings.html"><i class="fas fa-cog"></i> Settings</a></li>
+          <li role="menuitem"><a href="help.html"><i class="fas fa-question-circle"></i> Help</a></li>
+          <li role="menuitem"><a href="login.html"><i class="fas fa-sign-out-alt"></i> Log Out</a></li>
+        </ul>
+      </div>
 
-<section class="glass expense-container">
-  <!-- Add Expense -->
-   <div class="add-expense card">
-    <h3>Add Expense</h3>
-    <form action="/submit-expense" method="POST" class="expense-form">
-      <input type="text" name="desc" placeholder="Description" required />
-      <input type="number" name="amount" placeholder="Amount (₱)" step="0.01" required />
-      <input type="date" name="date" required />
-      <button type="submit" class="btn">Add Expense</button>
+      <!-- Add Expense & Upload -->
+      <section class="glass expense-container">
+        <div class="add-expense card">
+          <h3>Add Expense</h3>
+          <form action="/submit-expense" method="POST" class="expense-form">
+            <input type="text" name="desc" placeholder="Description" required />
+            <input type="number" name="amount" placeholder="Amount (₱)" step="0.01" required />
+            <input type="date" name="date" required />
+            <button type="submit" class="btn">Add Expense</button>
+          </form>
+        </div>
 
-    </form>
-  </div>
-
-  <div class="upload-file card wide">
-    <h3>Upload Receipt</h3>
-    <label for="fileInput" class="upload-box">
-      <i class="fas fa-cloud-upload-alt"></i>
-      <p>Click to upload file</p>
-    </label>
-    <input type="file" id="fileInput" hidden />
-  </div>
-</section>
-
+        <div class="upload-file card wide">
+          <h3>Upload Receipt</h3>
+          <label for="fileInput" class="upload-box">
+            <i class="fas fa-cloud-upload-alt"></i>
+            <p>Click to upload file</p>
+          </label>
+          <input type="file" id="fileInput" hidden />
+        </div>
+      </section>
 
       <!-- Table Preview -->
       <section class="glass transactions card">
         <h3>Recent Expenses</h3>
         <table id="recentExpensesTable">
-  <thead>
-    <tr>
-      <th>Description</th>
-      <th>Amount</th>
-      <th>Date</th>
-      <th>Category</th>
-    </tr>
-  </thead>
-
-  <tbody>
-  {% for desc, amount, date in expenses %}
-  <tr>
-    <td>{{ desc }}</td>
-    <td>₱{{ "%.2f"|format(amount) }}</td>
-    <td>{{ date }}</td>
-    <td>—</td> <!-- Category not yet stored -->
-  </tr>
-  {% else %}
-  <tr>
-    <td colspan="4">No expenses yet.</td>
-  </tr>
-  {% endfor %}
-  </tbody>
-  
-</table>
-
+          <thead>
+            <tr>
+              <th>Description</th>
+              <th>Amount</th>
+              <th>Date</th>
+              <th>Category</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for desc, amount, date in expenses %}
+            <tr>
+              <td>{{ desc }}</td>
+              <td>₱{{ "%.2f"|format(amount) }}</td>
+              <td>{{ date }}</td>
+              <td>—</td>
+            </tr>
+            {% else %}
+            <tr>
+              <td colspan="4">No expenses yet.</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
       </section>
     </main>
   </div>
+
+  <!-- ✅ Live Profile Sync Script -->
+  <script>
+    function syncProfileData() {
+      const savedProfile = localStorage.getItem("user_profile");
+      if (savedProfile) {
+        const profile = JSON.parse(savedProfile);
+        const name = document.getElementById("userName");
+        const role = document.getElementById("userRole");
+        const avatar = document.getElementById("userAvatar");
+
+        if (name) name.textContent = profile.full_name || "User";
+        if (role) role.textContent = profile.role || "Role";
+        if (avatar) {
+          if (profile.photo && profile.photo !== "") {
+            avatar.innerHTML = `<img src="${profile.photo}" alt="User" style="width:35px;height:35px;border-radius:50%;">`;
+          } else {
+            avatar.innerHTML = '<i class="fas fa-user"></i>';
+          }
+        }
+      }
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      syncProfileData();
+
+      // Dropdown toggle
+      const profile = document.getElementById("userProfile");
+      const menu = document.getElementById("profileMenu");
+
+      profile.addEventListener("click", (e) => {
+        e.stopPropagation();
+        menu.classList.toggle("show");
+        menu.setAttribute("aria-hidden", !menu.classList.contains("show"));
+      });
+
+      document.addEventListener("click", (e) => {
+        if (!menu.contains(e.target) && !profile.contains(e.target)) {
+          menu.classList.remove("show");
+          menu.setAttribute("aria-hidden", "true");
+        }
+      });
+    });
+
+    // Update if profile info changes in storage
+    window.addEventListener("storage", (e) => {
+      if (e.key === "user_profile") syncProfileData();
+    });
+  </script>
 
   <script src="upload.js"></script>
 </body>
