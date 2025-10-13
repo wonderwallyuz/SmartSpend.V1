@@ -78,10 +78,10 @@
 
         <div class="right">
           <div class="user" id="userProfile" tabindex="0" role="button" aria-haspopup="true" aria-expanded="false">
-            <div class="avatar"><i class="fas fa-user"></i></div>
+            <div class="avatar" id="userAvatar"><i class="fas fa-user"></i></div>
             <div class="user-info">
-              <h4>Eva Ombao</h4>
-              <p>Student</p>
+              <h4 id="userName">Eva Ombao</h4>
+              <p id="userRole">Student</p>
             </div>
           </div>
 
@@ -97,8 +97,6 @@
       </header>
 
       <!-- Modern Logout Section -->
-
-      
       <section id="logoutSection" class="section">
         <div class="logout-card">
           <div class="logout-icon">
@@ -143,6 +141,33 @@
     function hideLogout() {
       document.getElementById('logoutSection').style.display = 'none';
     }
+
+    /* ✅ Live Profile Sync (no UI change) */
+    function syncProfileData() {
+      const savedProfile = localStorage.getItem("user_profile");
+      if (savedProfile) {
+        const profile = JSON.parse(savedProfile);
+        const name = document.getElementById("userName");
+        const role = document.getElementById("userRole");
+        const avatar = document.getElementById("userAvatar");
+
+        if (name) name.textContent = profile.full_name || "User";
+        if (role) role.textContent = profile.role || "Role";
+        if (avatar) {
+          if (profile.photo && profile.photo !== "") {
+            avatar.innerHTML = `<img src="${profile.photo}" alt="User" style="width:35px;height:35px;border-radius:50%;">`;
+          } else {
+            avatar.innerHTML = '<i class="fas fa-user"></i>';
+          }
+        }
+      }
+    }
+
+    document.addEventListener("DOMContentLoaded", syncProfileData);
+
+    window.addEventListener("storage", (e) => {
+      if (e.key === "user_profile") syncProfileData();
+    });
   </script>
 </body>
 </html>

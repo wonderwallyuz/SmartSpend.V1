@@ -203,7 +203,14 @@
       console.error('Chart setup error:', err);
     }
 
+
+
+
+    
     /* ---------- debugging hint (remove after testing) ---------- */
     // console.log('SmartSpend UI initialized');
   }); // DOMContentLoaded
 })(); // IIFE
+
+
+
