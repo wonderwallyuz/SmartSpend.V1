@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Help - SmartSpend</title>
+
+  <!-- CSS -->
+  <link rel="stylesheet" href="style.css" />
+  
+   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+   <link rel="icon" href="../Assets/iconshit.png">
+  <script src="{{ url_for('static', filename='script.js') }}"></script>
+
+
+  <!-- Fonts & Icons -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" />
+  <script src="https://kit.fontawesome.com/2d9a2c9d4d.js" crossorigin="anonymous"></script>
+
+  <style>
+    /* HELP PAGE STYLES */
+    .help-container {
+      display: flex;
+      flex-direction: column;
+      gap: 2rem;
+      padding: 2rem;
+    }
+
+    .help-hero {
+      background: linear-gradient(135deg, #4a148c, #6a1b9a);
+      color: #fff;
+      padding: 2.5rem;
+      border-radius: 12px;
+      text-align: left;
+    }
+
+    .help-hero h1 {
+      font-size: 2rem;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+    }
+
+    .help-hero p {
+      font-size: 1rem;
+      opacity: 0.9;
+    }
+
+    .help-content {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 1.5rem;
+    }
+
+    .help-card {
+      background: rgba(255,255,255,0.05);
+      backdrop-filter: blur(8px);
+      padding: 1.5rem;
+      border-radius: 12px;
+      color: #fff;
+      transition: transform 0.2s ease, background 0.2s ease;
+    }
+
+    .help-card:hover {
+      background: rgba(255,255,255,0.1);
+      transform: translateY(-4px);
+    }
+
+    .help-card h2 {
+      font-size: 1.25rem;
+      font-weight: 600;
+      margin-bottom: 0.75rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .help-card p {
+      font-size: 0.95rem;
+      opacity: 0.85;
+      margin-bottom: 0.75rem;
+    }
+
+    .help-card a {
+      display: inline-block;
+      margin-top: 0.5rem;
+      color: #6a1b9a;
+      background: #fff;
+      padding: 0.5rem 1rem;
+      font-size: 0.9rem;
+      border-radius: 8px;
+      text-decoration: none;
+      transition: background 0.2s ease, color 0.2s ease;
+    }
+
+    .help-card a:hover {
+      background: #6a1b9a;
+      color: #fff;
+    }
+
+    @media (max-width: 768px) {
+      .help-hero {
+        text-align: center;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="background"></div>
+
+  <div class="dashboard">
+    <!-- Sidebar (Help removed, Logout kept) -->
+    <aside class="sidebar" id="sidebar" aria-label="Main Navigation">
+      <div class="top-group">
+        <div class="logo">
+          <img src="{{ url_for('static', filename='logosmartspend.png') }}" alt="SmartSpend Logo">
+        </div>
+        <nav>
+          <ul class="menu" id="menu">
+            <li class="menu-item" data-name="dashboard">
+              <a href="/dashboard">
+                <span class="material-symbols-outlined">dashboard</span>
+                <span class="label">Dashboard</span>
+              </a>
+            </li>
+            <li class="menu-item" data-name="upload">
+              <a href="/upload">
+                <span class="material-symbols-outlined">upload</span>
+                <span class="label">Upload</span>
+              </a>
+            </li>
+            <li class="menu-item" data-name="budget">
+              <a href="/budget">
+                <span class="material-symbols-outlined">account_balance_wallet</span>
+                <span class="label">Budget</span>
+              </a>
+            </li>
+            <li class="menu-item" data-name="reports">
+              <a href="/reports">
+                <span class="material-symbols-outlined">assignment</span>
+                <span class="label">Reports</span>
+              </a>
+            </li>
+            <li class="menu-item" data-name="logout">
+              <a href="/logout">
+                <span class="material-symbols-outlined">logout</span>
+                <span class="label">Logout</span>
+              </a>
+            </li>
+            <!-- Help was removed -->
+          </ul>
+        </nav>
+      </div>
+
+      <div class="sidebar-footer">
+        <button id="collapseBtn" class="collapse-btn" aria-pressed="false">
+          <i class="fas fa-chevron-left"></i>
+        </button>
+      </div>
+    </aside>
+
+    <!-- Main -->
+    <main class="main">
+      <header class="header">
+        <div class="left">
+          <button class="toggle-btn" id="toggleSidebarBtn" aria-label="Toggle sidebar">
+            <i class="fas fa-bars"></i>
+          </button>
+          <h2 class="page-title">Help</h2>
+        </div>
+
+        <div class="right">
+          <div class="user" id="userProfile" tabindex="0" role="button">
+            <div class="avatar"><i class="fas fa-user"></i></div>
+            <div class="user-info">
+              <h4>{{ username }}</h4>
+              
+            </div>
+          </div>
+
+         <div class="profile-menu" id="profileMenu" role="menu" aria-hidden="true">
+  <ul>
+    <li role="menuitem"><a href="/profile"><i class="fas fa-user"></i> Profile</a></li>
+    <li role="menuitem"><a href="/settings"><i class="fas fa-cog"></i> Settings</a></li>
+    <li role="menuitem"><a href="/help"><i class="fas fa-question-circle"></i> Help</a></li>
+    <li role="menuitem"><a href="/login"><i class="fas fa-sign-out-alt"></i> Log Out</a></li>
+  </ul>
+</div>
+
+        </div>
+      </header>
+
+      <!-- Help Section -->
+      <section class="help-container">
+        <div class="help-hero">
+          <h1>Need Help?</h1>
+          <p>Find answers to your questions, explore guides, or reach out to our support team.</p>
+        </div>
+
+        <div class="help-content">
+          <div class="help-card">
+            <h2><i class="fas fa-book-open"></i> Getting Started</h2>
+            <p>Learn how to set up your SmartSpend account and start managing your budget.</p>
+            <a href="/getting-started">Read Guide</a>
+          </div>
+
+          <div class="help-card">
+            <h2><i class="fas fa-question-circle"></i> FAQs</h2>
+            <p>Find quick answers to the most common questions about SmartSpend.</p>
+            <a href="/FAQ">View FAQs</a>
+          </div>
+
+          <div class="help-card">
+            <h2><i class="fas fa-headset"></i> Contact Support</h2>
+            <p>Need further assistance? Contact our support team for personalized help.</p>
+            <a href="/contact">Contact Us</a>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    // Sidebar toggle
+    const sidebar = document.getElementById('sidebar');
+    const toggleBtn = document.getElementById('toggleSidebarBtn');
+    const collapseBtn = document.getElementById('collapseBtn');
+    toggleBtn.addEventListener('click', () => sidebar.classList.toggle('collapsed'));
+    collapseBtn.addEventListener('click', () => sidebar.classList.toggle('collapsed'));
+
+    // Profile menu toggle
+    const userProfile = document.getElementById('userProfile');
+    const profileMenu = document.getElementById('profileMenu');
+    userProfile.addEventListener('click', () => {
+      const isHidden = profileMenu.getAttribute('aria-hidden') === 'true';
+      profileMenu.setAttribute('aria-hidden', !isHidden);
+      profileMenu.style.display = isHidden ? 'block' : 'none';
+    });
+  </script>
+</body>
+</html>

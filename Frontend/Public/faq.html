@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>FAQs - SmartSpend</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="icon" href="../Assets/iconshit.png">
+<script src="https://kit.fontawesome.com/2d9a2c9d4d.js" crossorigin="anonymous"></script>
+
+<style>
+  * {
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:'Poppins',sans-serif;
+  }
+
+  body {
+    height:100vh;
+    background:linear-gradient(135deg,#0b0016,#2a0147);
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    overflow:hidden;
+    color:#fff;
+  }
+
+  /* Back Button */
+  .back-btn {
+    position:absolute;
+    top:20px;
+    left:20px;
+    display:flex;
+    align-items:center;
+    gap:0.5rem;
+    background:rgba(255,255,255,0.1);
+    padding:0.5rem 1rem;
+    border:none;
+    color:#fff;
+    border-radius:8px;
+    cursor:pointer;
+    transition:background 0.3s ease;
+    font-weight:500;
+  }
+  .back-btn i {font-size:1rem;}
+  .back-btn:hover {background:rgba(255,255,255,0.25);}
+
+  /* Main container */
+  .card-container {
+    width:800px;
+    max-width:90%;
+    height:600px;
+    background:rgba(255,255,255,0.05);
+    backdrop-filter:blur(10px);
+    border-radius:16px;
+    padding:2rem;
+    display:flex;
+    flex-direction:column;
+  }
+
+  /* Header card */
+  .intro-card {
+    background:linear-gradient(135deg,#6a1b9a,#8e24aa);
+    color:#fff;
+    padding:1.5rem;
+    border-radius:12px;
+    margin-bottom:1rem;
+    text-align:center;
+  }
+  .intro-card h1 {
+    font-size:2rem;
+    font-weight:600;
+    margin-bottom:0.5rem;
+  }
+  .intro-card p {
+    font-size:1rem;
+    color:#f5f5f5;
+  }
+
+  /* FAQ list */
+  .faq-list {
+    flex:1;
+    overflow-y:auto;
+    padding-right:0.5rem;
+  }
+
+  .faq-item {
+    background:rgba(255,255,255,0.1);
+    border-radius:12px;
+    margin-bottom:1rem;
+    padding:1rem 1.2rem;
+    cursor:pointer;
+    transition:background 0.3s, transform 0.2s;
+  }
+  .faq-item:hover {
+    background:rgba(255,255,255,0.2);
+    transform:translateY(-2px);
+  }
+
+  .faq-question {
+    font-size:1.1rem;
+    font-weight:500;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+  }
+
+  .faq-answer {
+    margin-top:0.6rem;
+    font-size:0.95rem;
+    color:#eaeaea;
+    line-height:1.4;
+    display:none;
+  }
+
+  .faq-item.active .faq-answer {
+    display:block;
+  }
+
+  @media(max-width:768px) {
+    .card-container {
+      height:auto;
+      max-height:90%;
+    }
+  }
+</style>
+</head>
+<body>
+
+<!-- Back Button -->
+<button class="back-btn" onclick="window.location.href='/help'">
+  <i class="fas fa-arrow-left"></i> Back
+</button>
+
+<!-- Main Card -->
+<div class="card-container">
+  <div class="intro-card">
+    <h1>Frequently Asked Questions</h1>
+    <p>Find quick answers to common SmartSpend questions.</p>
+  </div>
+
+  <div class="faq-list">
+    <div class="faq-item">
+      <div class="faq-question">
+        How do I create a SmartSpend account?
+        <i class="fas fa-chevron-down"></i>
+      </div>
+      <div class="faq-answer">
+        Click the “Sign Up” button on the login page, enter your details, and confirm your email to activate your account.
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-question">
+        Can I import expenses from a spreadsheet?
+        <i class="fas fa-chevron-down"></i>
+      </div>
+      <div class="faq-answer">
+        Yes! Go to the Upload page and select “Import CSV/Excel” to automatically add your expenses into SmartSpend.
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-question">
+        How do I adjust my monthly budget?
+        <i class="fas fa-chevron-down"></i>
+      </div>
+      <div class="faq-answer">
+        Navigate to the Budget page, edit your desired category’s limit, and click “Save Changes” to update your budget.
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-question">
+        Is my financial data secure?
+        <i class="fas fa-chevron-down"></i>
+      </div>
+      <div class="faq-answer">
+        SmartSpend uses encrypted connections and secure data storage to keep your personal and financial information safe.
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-question">
+        Who can I contact for additional help?
+        <i class="fas fa-chevron-down"></i>
+      </div>
+      <div class="faq-answer">
+        You can reach our support team anytime via the “Contact Support” page for personalized assistance.
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Toggle FAQ answers
+  document.querySelectorAll('.faq-item').forEach(item => {
+    item.addEventListener('click', () => {
+      item.classList.toggle('active');
+    });
+  });
+</script>
+
+</body>
+</html>

@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Reports - SmartSpend</title>
+
+  <!-- CSS -->
+  <link rel="stylesheet" href="../Assets/style.css" />
+   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+   <link rel="icon" href="../Assets/iconshit.png">
+  <script src="{{ url_for('static', filename='script.js') }}"></script>
+
+  <!-- Fonts & Icons -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" />
+  <script src="https://kit.fontawesome.com/2d9a2c9d4d.js" crossorigin="anonymous"></script>
+
+  <!-- ChartJS -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <!-- Flatpickr for calendar date range -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+
+  
+
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html,body { height:100%; }
+    body {
+      font-family: "Poppins", sans-serif;
+      color: #fff;
+      background: #0b0016;
+      overflow-x: hidden;
+    }
+    
+        /* Prevent sidebar from scrolling */
+    .sidebar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    /* Push main content so it doesn't go behind sidebar */
+    .main {
+      margin-left: 260px; /* adjust if your sidebar is a different width */
+    }
+
+
+    .background {
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+      background: linear-gradient(135deg, #150022, #1a0033 40%, #2b0057 100%);
+    }
+
+    /* FILTERS */
+    .filters {
+      background: rgba(255,255,255,0.05);
+      backdrop-filter: blur(14px);
+      padding: 1rem;
+      border-radius: 16px;
+      margin-bottom: 2rem;
+    }
+    .filter-fields {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      align-items: flex-end;
+    }
+    .field { display: flex; flex-direction: column; }
+    label { margin-bottom: 0.3rem; }
+    .input-dark, select, input[type=text] {
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.2);
+      padding: 0.5rem 0.75rem;
+      border-radius: 8px;
+      color: #fff;
+    }
+    .btn-primary {
+      background: #7f5cff;
+      border: none;
+      color: #fff;
+      font-weight: 600;
+      padding: 0.6rem 1.2rem;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    @media (max-width:768px){
+      #applyFilters{ width:100%; }
+    }
+
+    /* Chart area */
+    .chart-area {
+      background: rgba(255,255,255,0.05);
+      backdrop-filter: blur(14px);
+      padding: 1rem 1.5rem;
+      border-radius: 16px;
+    }
+    .chart-area h3 { margin-bottom: 1rem; color: #f07cff; }
+    .chart-box { height: 500px; }
+    .chart-box canvas { width: 100% !important; height: 100% !important; }
+
+    /* TABLE */
+    .category-breakdown {
+      margin-top: 2rem;
+      background: rgba(255,255,255,0.05);
+      padding: 1rem 1.5rem;
+      border-radius: 16px;
+    }
+    .category-breakdown h3 {
+      margin-bottom: 1rem;
+      color: #fff;
+    }
+    #breakdownTable {
+      width: 100%;
+      border-collapse: collapse;
+      color: #fff;
+    }
+    #breakdownTable th, #breakdownTable td {
+      padding: 0.8rem;
+      text-align: left;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+    #breakdownTable th {
+      color: #f07cff;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    #breakdownTable tr:hover {
+      background: rgba(255,255,255,0.08);
+    }
+
+    /* INSIGHTS */
+    .insights {
+      margin-top: 2rem;
+      background: rgba(255,255,255,0.05);
+      padding: 1.5rem 1.8rem;
+      border-radius: 16px;
+      border-left: 5px solid #f07cff;
+    }
+    .insights h3 {
+      color: #f07cff;
+      margin-bottom: 1rem;
+      font-weight: 600;
+    }
+    .insights ul {
+      list-style: none;
+      padding-left: 0.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.8rem;
+    }
+    .insights li {
+      position: relative;
+      background: rgba(255,255,255,0.05);
+      padding: 0.7rem 1rem;
+      border-radius: 10px;
+      font-size: 0.95rem;
+      color: #f4f4f4;
+      line-height: 1.5;
+      transition: all 0.3s ease;
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+    .insights li:hover {
+      background: rgba(240, 124, 255, 0.1);
+      transform: translateX(4px);
+    }
+    .insights li::before {
+      content: "• ";
+      font-size: 1rem;
+      color: #f07cff;
+    }
+
+    /* Tooltip Styling */
+    .chartjs-tooltip {
+      background: rgba(30, 0, 60, 0.95);
+      color: #fff;
+      border-radius: 10px;
+      border: 1px solid #f07cff;
+      padding: 10px 14px;
+      max-width: 220px;
+      text-align: left;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="background"></div>
+  <div class="dashboard">
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar" aria-label="Main Navigation">
+      <div class="top-group">
+        <div class="logo">
+          <img src="{{ url_for('static', filename='logosmartspend.png') }}" alt="SmartSpend Logo">
+        </div>
+
+        <nav>
+          <ul class="menu" id="menu">
+            <li class="nav-item" data-name="dashboard">
+              <a href="/dashboard"><span class="material-symbols-outlined">dashboard</span><span class="label">Dashboard</span></a>
+            </li>
+            <li class="nav-item" data-name="upload">
+              <a href="/upload"><span class="material-symbols-outlined">upload</span><span class="label">Upload</span></a>
+            </li>
+            <li class="nav-item" data-name="budget">
+              <a href="/budget"><span class="material-symbols-outlined">account_balance_wallet</span><span class="label">Budget</span></a>
+            </li>
+            <li class="menu-item active" data-name="reports">
+              <a href="/reports"><span class="material-symbols-outlined">assignment</span><span class="label">Reports</span></a>
+            </li>
+            <li class="nav-item" data-name="logout">
+              <a href="/logout"><span class="material-symbols-outlined">logout</span><span class="label">Logout</span></a>
+            </li>
+          </ul>
+        </nav>
+      </div>
+      <div class="profile-menu" id="profileMenu" role="menu" aria-hidden="true">
+  <ul>
+    <li role="menuitem"><a href="/profile"><i class="fas fa-user"></i> Profile</a></li>
+    <li role="menuitem"><a href="/settings"><i class="fas fa-cog"></i> Settings</a></li>
+    <li role="menuitem"><a href="/help"><i class="fas fa-question-circle"></i> Help</a></li>
+    <li role="menuitem"><a href="/login"><i class="fas fa-sign-out-alt"></i> Log Out</a></li>
+  </ul>
+</div>
+
+
+      <div class="sidebar-footer">
+        <button id="collapseBtn" class="collapse-btn" ><i class="fas fa-chevron-left"></i></button>
+      </div>
+    </aside>
+
+    <main class="main">
+      <header class="header">
+        <div class="left">
+          <button class="toggle-btn" id="toggleSidebarBtn" aria-label="Toggle sidebar">
+            <i class="fas fa-bars"></i>
+          </button>
+          <h2 class="page-title">Reports and Insights</h2>
+        </div>
+
+        <div class="right">
+          <div class="user" id="userProfile" tabindex="0" role="button" aria-haspopup="true" aria-expanded="false">
+            <div class="avatar"><i class="fas fa-user"></i></div>
+            <div class="user-info">
+              <h4>{{ username }}</h4>
+            </div>
+          </div>
+
+          <div class="profile-menu" id="profileMenu" role="menu" aria-hidden="true">
+            <ul>
+              <li><a href="/profile"><i class="fas fa-user"></i> Profile</a></li>
+              <li><a href="/settings"><i class="fas fa-cog"></i> Settings</a></li>
+              <li><a href="/help"><i class="fas fa-question-circle"></i> Help</a></li>
+              <li><a href="/logout"><i class="fas fa-sign-out-alt"></i> Log Out</a></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+
+      <!-- Filters -->
+      <section class="filters">
+        <div class="filter-fields">
+          <div class="field">
+    <label for="dateRange">Date Range:</label>
+    <select id="dateRangeSelection" class="input-dark">
+      <option value="weekly">Weekly</option>
+      <option value="monthly">Monthly</option>
+    </select>
+  </div>
+          <div class="field">
+            <label for="category">Category:</label>
+            <select id="category" class="input-dark">
+              <option value="">All</option>
+              <option value="food">Food</option>
+              <option value="transport">Transport</option>
+              <option value="drinks">Drinks</option>
+              <option value="entertainment">Entertainment</option>
+              <option value="skincare">Skincare</option>
+              <option value="subscriptions">Subscriptions</option>
+            </select>
+          </div>
+          <button id="applyFilters" class="btn-primary">Apply Filters</button>
+        </div>
+      </section>
+
+      <!-- Chart -->
+      <section class="chart-area">
+        <h3>Category Spending</h3>
+        <div class="chart-box">
+          <canvas id="categoryChart"></canvas>
+        </div>
+
+     <div class="category-breakdown">
+  <h3>Category Breakdown</h3>
+  <table id="breakdownTable">
+    <thead>
+      <tr>
+        <th>Category</th>
+        <th>Amount</th>
+        <th>% of Total</th>
+        <th>Most Active Day</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for cat, amount, percent, day in breakdown_data %}
+      <tr>
+        <td>{{ cat }}</td>
+        <td>₱{{ "%.2f"|format(amount) }}</td>
+        <td>{{ "%.0f"|format(percent) }}%</td>
+        <td>{{ day }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+ 
+
+        <!-- Improved Insight Section -->
+       <div class="insights">
+  <h3>SmartSpend Insights</h3>
+  {% if insights %}
+    <ul>
+      {% for line in insights.split('\n') if line.strip() %}
+        <li>{{ line }}</li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p>No insights available yet.</p>
+  {% endif %}
+</div>
+
+      </section>
+    </main>
+  </div>
+
+  <script>
+    const ctx = document.getElementById('categoryChart').getContext('2d');
+    const monthlySpending = {
+      Food: [300, 450, 720, 650, 800, 900],
+      Transport: [500, 400, 450, 300, 350, 400],
+      Drinks: [200, 250, 380, 310, 290, 320],
+      Entertainment: [400, 350, 300, 450, 380, 500],
+      Skincare: [600, 500, 600, 700, 550, 580],
+      Subscriptions: [250, 200, 230, 300, 250, 280]
+    };
+    const months = ['May', 'June', 'July', 'August', 'September', 'October'];
+
+    new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: Object.keys(monthlySpending),
+        datasets: [{
+          data: Object.values(monthlySpending).map(arr => arr[arr.length - 1]),
+          backgroundColor: ['#5AC4FF','#FFFFFF','#BCA7FF','#7A7DFF','#D54FFF','#CCCCFF'],
+          borderRadius: 6,
+          borderSkipped: false,
+          barThickness: 70
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            backgroundColor: 'rgba(30, 0, 60, 0.95)',
+            titleColor: '#f07cff',
+            titleFont: { weight: 'bold', size: 14 },
+            bodyColor: '#fff',
+            borderColor: '#f07cff',
+            borderWidth: 1,
+            padding: 10,
+            callbacks: {
+              title: (context) => `${context[0].label} Spending`,
+              label: (context) => {
+                const category = context.label;
+                const data = monthlySpending[category];
+                let lines = [];
+                months.forEach((m, i) => {
+                  lines.push(`${m}: ₱${data[i].toLocaleString()}`);
+                });
+                return lines; // vertical list format
+              }
+            }
+          }
+        },
+        scales: {
+          x: {
+            grid: { display: false },
+            ticks: { color: '#fff', font: { size: 14 } }
+          },
+          y: {
+            grid: { color: 'rgba(255,255,255,0.1)' },
+            ticks: { color: '#fff', font: { size: 14 } }
+          }
+        }
+      }
+    });
+
+    flatpickr("#dateRange", {
+      mode: "range",
+      dateFormat: "Y-m-d",
+      altInput: true,
+      altFormat: "F j, Y"
+    });
+  </script>
+</body>
+</html>
