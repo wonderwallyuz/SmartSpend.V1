@@ -6,6 +6,9 @@
 <title>SMARTSPEND – Login</title>
 
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+<link rel="icon" href="../Assets/iconshit.png">
+<script src="{{ url_for('static', filename='script.js') }}"></script>
 
 <style>
 /* ---------- RESET & BASE ---------- */
@@ -302,7 +305,7 @@ input:focus{
   <!-- LEFT -->
   <div class="left">
     <img 
-  src="../Assets/logosmartspend.png" 
+  src="{{ url_for('static', filename='logosmartspend.png') }}" 
   alt="SmartSpend Logo"
   style="
     position:absolute;
@@ -339,23 +342,24 @@ input:focus{
     <h2>Login</h2>
     <p>Glad you're back!</p>
 
-    <!-- LOGIN FORM -->
-    <form id="loginForm">
-      <input type="text" placeholder="Username" id="username" required>
-      <input type="password" placeholder="Password" id="password" required>
+<!-- LOGIN FORM -->
+<form method="POST" action="{{ url_for('login') }}">
+  <input type="text" name="email" placeholder="Email Address" required>
+  <input type="password" name="password" placeholder="Password" required>
 
-      <div class="remember-forgot">
-        <label>
-          <input type="checkbox" id="rememberMe">
-          Remember me
-        </label>
-        <a href="#" id="forgotPasswordLink">Forgot password?</a>
-      </div>
+  <div class="remember-forgot">
+    <label>
+      <input type="checkbox" name="remember_me">
+      Remember me
+    </label>
+    <a href="#" id="forgotPasswordLink">Forgot password?</a>
+  </div>
 
-      <button type="submit" class="login-btn">Login</button>
-    </form>
+  <button type="submit" class="login-btn">Login</button>
+</form>
 
-    <div class="divider">Or continue with</div>
+<div class="divider">Or continue with</div>
+
 
     <!-- SOCIAL LOGIN -->
    <div class="socials">
@@ -385,7 +389,7 @@ input:focus{
 </div>
 
     <div class="signup-link">
-      Don’t have an account? <a href="signup.html">Sign Up</a>
+      Don’t have an account? <a href="{{ url_for('signup') }}">Sign Up</a>
     </div>
   </div>
 </div>
@@ -417,7 +421,7 @@ const forgotLink=document.getElementById('forgotPasswordLink');
 const modal=document.getElementById('forgotModal');
 const closeModal=document.getElementById('closeModal');
 
-forgotLink.addEventListener('click',e=>{  
+forgotLink.addEventListener('click',e=>{
   e.preventDefault();
   modal.style.display='flex';
 });
@@ -438,4 +442,4 @@ document.getElementById('sendResetBtn').addEventListener('click',()=>{
 </script>
 
 </body>
-</html> 
+</html>

@@ -4,6 +4,9 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>SMARTSPEND</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+<link rel="icon" href="../Assets/iconshit.png">
+  <script src="{{ url_for('static', filename='script.js') }}"></script>
 
 <style>
 /* ---------------------------
@@ -200,7 +203,7 @@ h1 span {
   <!-- Logo -->
   <div class="logo">
      <img 
-  src="../Assets/logosmartspend.png" 
+  src="{{ url_for('static', filename='logosmartspend.png') }}" 
   alt="SmartSpend Logo"
   style="
     position:absolute;
@@ -225,7 +228,7 @@ h1 span {
 
 <script>
   document.querySelector(".btn").addEventListener("click", () => {
-    window.location.href = "signup.html";
+    window.location.href = "{{ url_for('login') }}";
   });
 </script>
 </body>
