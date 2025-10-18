@@ -71,6 +71,13 @@
       background: rgba(255, 255, 255, 0.1);
     }
   </style>
+   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+   <link rel="icon" href="../Assets/iconshit.png">
+  <script src="{{ url_for('static', filename='script.js') }}"></script>
+
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
+  <script src="https://kit.fontawesome.com/2d9a2c9d4d.js" crossorigin="anonymous"></script>
 </head>
 <body>
   <div class="background"></div>
@@ -80,20 +87,23 @@
     <aside class="sidebar" id="sidebar" aria-label="Main Navigation">
       <div class="top-group">
         <div class="logo">
-          <img src="../Assets/logosmartspend.png" alt="SmartSpend Logo">
+          <img src="{{ url_for('static', filename='logosmartspend.png') }}" alt="SmartSpend Logo">
+          <span class="logo-text"></span>
         </div>
+
         <nav>
           <ul class="menu" id="menu">
-            <li class="menu-item"><a href="/dashboard"><span class="material-symbols-outlined">dashboard</span><span class="label">Dashboard</span></a></li>
-            <li class="menu-item"><a href="/upload"><span class="material-symbols-outlined">upload</span><span class="label">Upload</span></a></li>
-            <li class="menu-item"><a href="/budget"><span class="material-symbols-outlined">account_balance_wallet</span><span class="label">Budget</span></a></li>
-            <li class="menu-item"><a href="/reports"><span class="material-symbols-outlined">assignment</span><span class="label">Reports</span></a></li>
-            <li class="menu-item"><a href="/logout"><span class="material-symbols-outlined">logout</span><span class="label">Logout</span></a></li>
+            <li class="nav-item"><a href="/dashboard"><span class="material-symbols-outlined">dashboard</span><span class="label">Dashboard</span></a></li>
+            <li class="nav-item"><a href="/upload"><span class="material-symbols-outlined">upload</span><span class="label">Upload</span></a></li>
+            <li class="nav-item"><a href="/bugdet"><span class="material-symbols-outlined">account_balance_wallet</span><span class="label">Budget</span></a></li>
+            <li class="nav-item"><a href="/reports"><span class="material-symbols-outlined">assignment</span><span class="label">Reports</span></a></li>
+            <li class="nav-item"><a href="/logout"><span class="material-symbols-outlined">logout</span><span class="label">Logout</span></a></li>
           </ul>
         </nav>
       </div>
     </aside>
 
+    <!-- Main content -->
     <main class="main">
       <header class="header">
         <div class="left">
@@ -105,50 +115,53 @@
 
         <div class="right">
           <div class="user" id="userProfile" tabindex="0">
-            <div class="avatar" id="userAvatar"><i class="fas fa-user"></i></div>
+            <div class="avatar" id="userAvatar">
+  <img src="{{ url_for('static', filename='uploads/avatar.png') }}" alt="User Avatar" style="width:35px; height:35px; border-radius:50%; object-fit:cover;">
+</div>
+
             <div class="user-info">
-              <h4 id="userName">Eva Ombao</h4>
-              <p id="userRole">Student</p>
+              <h4>{{username}}</h4>
+            
             </div>
           </div>
 
-          <!-- Dropdown Menu -->
           <div class="profile-menu" id="profileMenu" role="menu" aria-hidden="true">
-            <ul>
-              <li role="menuitem"><a href="profile.html"><i class="fas fa-user"></i> Profile</a></li>
-              <li role="menuitem"><a href="settings.html"><i class="fas fa-cog"></i> Settings</a></li>
-              <li role="menuitem"><a href="help.html"><i class="fas fa-question-circle"></i> Help</a></li>
-              <li role="menuitem"><a href="login.html"><i class="fas fa-sign-out-alt"></i> Log Out</a></li>
-            </ul>
-          </div>
+  <ul>
+    <li role="menuitem"><a href="/profile"><i class="fas fa-user"></i> Profile</a></li>
+    <li role="menuitem"><a href="/settings"><i class="fas fa-cog"></i> Settings</a></li>
+    <li role="menuitem"><a href="/help"><i class="fas fa-question-circle"></i> Help</a></li>
+    <li role="menuitem"><a href="/login"><i class="fas fa-sign-out-alt"></i> Log Out</a></li>
+  </ul>
+</div>
+
         </div>
       </header>
 
       <!-- Profile Section -->
       <section class="profile-card glass animate-fade">
         <div class="profile-content">
+          <!-- Left: Profile Picture -->
           <div class="profile-photo">
-            <img src="images/avatar.png" id="profilePic" alt="Profile Picture">
+            <img src="{{ url_for('static', filename='uploads/avatar.png') }}" id="profilePic" alt="Profile Picture">
             <input type="file" id="photoInput" accept="image/*" style="display:none;">
-            <button type="button" class="btn small" id="changePhotoBtn">
-              <i class="fas fa-camera"></i> Change Photo
-            </button>
+            <button type="button" class="btn small" id="changePhotoBtn"><i class="fas fa-camera"></i> Change Photo</button>
           </div>
 
+          <!-- Right: Form -->
           <form class="profile-form" id="profileForm">
             <div class="form-group">
               <label for="fullname">Full Name</label>
-              <input type="text" id="fullname" />
+              <input type="text" id="fullname" value="Eva Ombao" />
             </div>
 
             <div class="form-group">
               <label for="username">Username</label>
-              <input type="text" id="username" />
+              <input type="text" id="username" value="{{username}}">
             </div>
 
             <div class="form-group">
               <label for="email">Email</label>
-              <input type="email" id="email" />
+              <input type="email" id="email" value="{{email}}" >
             </div>
 
             <div class="form-group">
@@ -174,7 +187,8 @@
 
   <div id="toast"></div>
 
-  <script>
+ <script>
+window.addEventListener("DOMContentLoaded", () => {
   const changeBtn = document.getElementById("changePhotoBtn");
   const photoInput = document.getElementById("photoInput");
   const profilePic = document.getElementById("profilePic");
@@ -183,78 +197,78 @@
   const userProfile = document.getElementById("userProfile");
   const profileMenu = document.getElementById("profileMenu");
 
-// Show toast messages
-function showToast(message, success = true) {
-  toast.textContent = message;
-  toast.style.backgroundColor = success ? "#4CAF50" : "#D32F2F";
-  toast.className = "show";
-  setTimeout(() => toast.className = toast.className.replace("show", ""), 3000);
-}
+  // Show toast messages
+  function showToast(message, success = true) {
+    toast.textContent = message;
+    toast.style.backgroundColor = success ? "#4CAF50" : "#D32F2F";
+    toast.className = "show";
+    setTimeout(() => toast.className = toast.className.replace("show", ""), 3000);
+  }
 
-// Update top header user info
-function updateUserHeader(name, role, photo) {
+  // Update top header user info
+ function updateUserHeader(name, role, photo) {
   const userName = document.getElementById("userName");
   const userRole = document.getElementById("userRole");
   const userAvatar = document.getElementById("userAvatar");
   if (userName) userName.textContent = name || "User";
   if (userRole) userRole.textContent = role || "Role";
-  if (photo) userAvatar.innerHTML = `<img src="${photo}" alt="User" style="width:35px;height:35px;border-radius:50%;">`;
+  if (userAvatar && photo) userAvatar.innerHTML = `<img src="${photo}" alt="User" style="width:35px;height:35px;border-radius:50%;">`;
 }
 
-// Load profile from localStorage
-function loadProfile() {
-  const stored = localStorage.getItem("user_profile");
-  if (stored) {
-    const profile = JSON.parse(stored);
-    document.getElementById("fullname").value = profile.full_name || "";
-    document.getElementById("username").value = profile.username || "";
-    document.getElementById("email").value = profile.email || "";
-    document.getElementById("role").value = profile.role || "";
-    document.getElementById("bio").value = profile.bio || "";
-    profilePic.src = profile.photo || "images/avatar.png";
-    updateUserHeader(profile.full_name, profile.role, profile.photo);
-  }
-}
-
-// Click "Change Photo" to open file explorer
-changeBtn.addEventListener("click", () => photoInput.click());
-
-// Handle file selection and upload
-photoInput.addEventListener("change", async (e) => {
-  const file = e.target.files[0];
-  if (!file) return;
-
-  const reader = new FileReader();
-  reader.onload = () => { profilePic.src = reader.result; };
-  reader.readAsDataURL(file);
-
-  const formData = new FormData();
-  formData.append("photo", file);
-
-  try {
-    const response = await fetch("/api/profile/upload_photo", { method: "POST", body: formData });
-    const result = await response.json();
-    if (response.ok) {
-      const serverPhotoURL = "/" + result.photo + "?t=" + new Date().getTime();
-      profilePic.src = serverPhotoURL;
-
-      const stored = JSON.parse(localStorage.getItem("user_profile")) || {};
-      stored.photo = serverPhotoURL;
-      localStorage.setItem("user_profile", JSON.stringify(stored));
-
-      showToast("Photo uploaded successfully ✅");
-    } else {
-      showToast("❌ " + result.error, false);
+  // Load profile from localStorage
+  function loadProfile() {
+    const stored = localStorage.getItem("user_profile");
+    if (stored) {
+      const profile = JSON.parse(stored);
+      document.getElementById("fullname").value = profile.full_name || "";
+      document.getElementById("username").value = profile.username || "";
+      document.getElementById("email").value = profile.email || "";
+      document.getElementById("role").value = profile.role || "";
+      document.getElementById("bio").value = profile.bio || "";
+      profilePic.src = profile.photo || "images/avatar.png";
+      updateUserHeader(profile.full_name, profile.role, profile.photo);
     }
-  } catch (err) {
-    console.error(err);
-    showToast("⚠️ Upload failed", false);
   }
-});
 
-// Handle profile form submission
-profileForm.addEventListener("submit", async (e) => {
+  // Click "Change Photo" to open file explorer
+  changeBtn.addEventListener("click", () => photoInput.click());
+
+  // Handle file selection and upload
+  photoInput.addEventListener("change", async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = () => { profilePic.src = reader.result; };
+    reader.readAsDataURL(file);
+
+    const formData = new FormData();
+    formData.append("photo", file);
+
+    try {
+      const response = await fetch("/api/profile/upload_photo", { method: "POST", body: formData });
+      const result = await response.json();
+      if (response.ok) {
+        const serverPhotoURL = result.photo + "?t=" + new Date().getTime();
+        profilePic.src = serverPhotoURL;
+
+        const stored = JSON.parse(localStorage.getItem("user_profile")) || {};
+        stored.photo = serverPhotoURL;
+        localStorage.setItem("user_profile", JSON.stringify(stored));
+
+        showToast("Photo uploaded successfully ✅");
+      } else {
+        showToast("❌ " + result.error, false);
+      }
+    } catch (err) {
+      console.error(err);
+      showToast("⚠️ Upload failed", false);
+    }
+  });
+
+  profileForm.addEventListener("submit", async (e) => {
   e.preventDefault();
+
   const data = {
     full_name: document.getElementById("fullname").value,
     username: document.getElementById("username").value,
@@ -264,35 +278,58 @@ profileForm.addEventListener("submit", async (e) => {
     photo: profilePic.src
   };
 
-  localStorage.setItem("user_profile", JSON.stringify(data));
-  updateUserHeader(data.full_name, data.role, data.photo);
-
   try {
     const response = await fetch("/api/profile/update", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data)
     });
-    const result = await response.json();
-    if (response.ok) showToast(result.message);
-    else showToast(result.error, false);
+
+    // 🧠 Check raw text first, in case it's not valid JSON
+    const text = await response.text();
+    console.log("📩 Raw response:", text);
+
+    let result;
+    try {
+      result = JSON.parse(text);
+    } catch (err) {
+      console.error("⚠️ Could not parse JSON:", err);
+      showToast("⚠️ Server returned invalid response", false);
+      return;
+    }
+
+    console.log("✅ Parsed JSON:", result);
+
+    if (response.ok && result.success) {
+      showToast(result.message || "✅ Profile saved successfully", true);
+      localStorage.setItem("user_profile", JSON.stringify(data));
+      updateUserHeader(data.full_name, data.role, data.photo);
+    } else {
+      showToast(result.error || "⚠️ Failed to save profile", false);
+    }
+
   } catch (err) {
-    console.error(err);
+    console.error("🔥 Fetch failed:", err);
     showToast("⚠️ Failed to save profile", false);
   }
 });
 
-// Dropdown toggle
-userProfile.addEventListener("click", e => {
-  e.stopPropagation();
-  profileMenu.classList.toggle("show");
-});
-document.addEventListener("click", e => {
-  if (!profileMenu.contains(e.target) && !userProfile.contains(e.target)) profileMenu.classList.remove("show");
-});
 
-// Load profile on page load
-loadProfile();
-  </script>
+  // Dropdown toggle
+  userProfile.addEventListener("click", e => {
+    e.stopPropagation();
+    profileMenu.classList.toggle("show");
+  });
+  document.addEventListener("click", e => {
+    if (!profileMenu.contains(e.target) && !userProfile.contains(e.target)) profileMenu.classList.remove("show");
+  });
+
+  // Load profile on page load
+  loadProfile();
+});
+</script>
+
+  <!-- JS -->
+  <script src="script.js"></script>
 </body>
 </html>
