@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Upload - SmartSpend</title>
+
+  <link rel="stylesheet" href="style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" />
+  <script src="https://kit.fontawesome.com/2d9a2c9d4d.js" crossorigin="anonymous"></script>
+</head>
+<body>
+  <div class="background"></div>
+
+  <div class="dashboard">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="top-group">
+        <div class="logo">
+          <img src="../Assets/logosmartspend.png" alt="SmartSpend Logo">
+        </div>
+        <nav>
+          <ul class="menu">
+            <li class="menu-item" data-name="dashboard">
+              <a href="dashboard.html"><span class="material-symbols-outlined">dashboard</span><span class="label">Dashboard</span></a>
+            </li>
+            <li class="menu-item active" data-name="upload">
+              <a href="#"><span class="material-symbols-outlined">upload</span><span class="label">Upload</span></a>
+            </li>
+            <li class="menu-item" data-name="budget">
+              <a href="#"><span class="material-symbols-outlined">account_balance_wallet</span><span class="label">Budget</span></a>
+            </li>
+            <li class="menu-item" data-name="reports">
+              <a href="#"><span class="material-symbols-outlined">assignment</span><span class="label">Reports</span></a>
+            </li>
+            <li class="menu-item" data-name="logout">
+              <a href="#"><span class="material-symbols-outlined">logout</span><span class="label">Logout</span></a>
+            </li>
+          </ul>
+        </nav>
+      </div>
+    </aside>
+    
+
+    <!-- Main -->
+    <main class="main">
+      <header class="header">
+        <h2 class="page-title">Upload & Add Expenses</h2>
+        <div class="right">
+          <div class="user">
+            <div class="avatar"><i class="fas fa-user"></i></div>
+            <div class="user-info">
+              <h4>Eva Ombao</h4>
+              <p>Student</p>
+            </div>
+          </div>
+        </div>
+      </header>
+      <div class="profile-menu" id="profileMenu" role="menu" aria-hidden="true">
+  <ul>
+    <li role="menuitem"><a href="profile.html"><i class="fas fa-user"></i> Profile</a></li>
+    <li role="menuitem"><a href="settings.html"><i class="fas fa-cog"></i> Settings</a></li>
+    <li role="menuitem"><a href="help.html"><i class="fas fa-question-circle"></i> Help</a></li>
+    <li role="menuitem"><a href="login.html"><i class="fas fa-sign-out-alt"></i> Log Out</a></li>
+  </ul>
+</div>
+
+
+    <!-- Add Expense & Upload -->
+<section class="glass expense-container">
+  <div class="add-expense card">
+    <h3>Add Expense</h3>
+    <input type="text" id="desc" placeholder="Description" />
+    <input type="number" id="amount" placeholder="Amount (₱)" />
+    <input type="date" id="date" />
+    <!-- Category removed -->
+    <button id="addExpenseBtn" class="btn primary">Add Expense</button>
+  </div>
+
+  <div class="upload-file card wide">
+    <h3>Upload Receipt</h3>
+    <label for="fileInput" class="upload-box">
+      <i class="fas fa-cloud-upload-alt"></i>
+      <p>Click to upload file</p>
+    </label>
+    <input type="file" id="fileInput" hidden />
+  </div>
+</section>
+
+
+      <!-- Table Preview -->
+      <section class="glass transactions card">
+        <h3>Recent Expenses</h3>
+        <table id="expenseTable">
+          <thead>
+            <tr>
+              <th>Description</th>
+              <th>Amount</th>
+              <th>Date</th>
+              <th>Category</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>Jollibee Lunch</td><td>₱150</td><td>2025-08-07</td><td>Food</td></tr>
+            <tr><td>Jeepney Fare</td><td>₱30</td><td>2025-08-06</td><td>Transport</td></tr>
+            <tr><td>Ballpen & Notebook</td><td>₱130</td><td>2025-08-06</td><td>School Supplies</td></tr>
+            <tr><td>Milktea</td><td>₱75</td><td>2025-08-06</td><td>Drinks</td></tr>
+          </tbody>
+        </table>
+      </section>
+    </main>
+  </div>
+
+  <script src="upload.js"></script>
+</body>
+</html>
