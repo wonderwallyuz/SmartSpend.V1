@@ -1,7 +1,7 @@
 
 from openai import OpenAI
 
-client = OpenAI(api_key="YOUR_API_KEY_HERE")
+client = OpenAI(api_key="api-key-placeholder")
 def categorize_expense(description: str, amount: float):
     prompt = f"""
         You are an intelligent expense categorization assistant.
