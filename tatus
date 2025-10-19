@@ -25,3 +25,150 @@ branch.main.remote=origin
 branch.main.merge=refs/heads/main
 branch.main.vscode-merge-base=origin/main
 branch.feature/my-changes.vscode-merge-base=origin/main
+[1mdiff --git a/.vscode/settings.json b/.vscode/settings.json[m
+[1mnew file mode 100644[m
+[1mindex 0000000..6f3a291[m
+[1m--- /dev/null[m
+[1m+++ b/.vscode/settings.json[m
+[36m@@ -0,0 +1,3 @@[m
+[32m+[m[32m{[m
+[32m+[m[32m    "liveServer.settings.port": 5501[m
+[32m+[m[32m}[m
+\ No newline at end of file[m
+[1mdiff --git a/Frontend/Assets/logosmartspend.png b/Frontend/Assets/logosmartspend.png[m
+[1mnew file mode 100644[m
+[1mindex 0000000..c9fafeb[m
+Binary files /dev/null and b/Frontend/Assets/logosmartspend.png differ
+[1mdiff --git a/Frontend/Public/bugdet.html b/Frontend/Public/bugdet.html[m
+[1mnew file mode 100644[m
+[1mindex 0000000..cd62127[m
+[1m--- /dev/null[m
+[1m+++ b/Frontend/Public/bugdet.html[m
+[36m@@ -0,0 +1,418 @@[m
+[32m+[m[32m<!DOCTYPE html>[m
+[32m+[m[32m<html lang="en">[m
+[32m+[m[32m<head>[m
+[32m+[m[32m  <meta charset="UTF-8" />[m
+[32m+[m[32m  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>[m
+[32m+[m[32m  <title>Budget - SmartSpend</title>[m
+[32m+[m
+[32m+[m[32m  <!-- CSS -->[m
+[32m+[m[32m  <link rel="stylesheet" href="style.css" />[m
+[32m+[m
+[32m+[m[32m  <!-- Fonts & Icons -->[m
+[32m+[m[32m  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">[m
+[32m+[m[32m  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" />[m
+[32m+[m[32m  <script src="https://kit.fontawesome.com/2d9a2c9d4d.js" crossorigin="anonymous"></script>[m
+[32m+[m
+[32m+[m[32m  <!-- Small inline styles for selection, modals and toast (overrides coming from style.css where needed) -->[m
+[32m+[m[32m  <style>[m
+[32m+[m[32m    /* Ensure background doesn't intercept clicks */[m
+[32m+[m[32m    .background { pointer-events: none; z-index: -1; }[m
+[32m+[m
+[32m+[m[32m    /* Make the transactions area sit above background */[m
+[32m+[m[32m    .transactions { position: relative; z-index: 5; }[m
+[32m+[m
+[32m+[m[32m    /* Row selection */[m
+[32m+[m[32m    #budgetTable tbody tr { cursor: pointer; transition: background 0.18s ease; }[m
+[32m+[m[32m    #budgetTable tbody tr:hover { background: rgba(255,255,255,0.04); }[m
+[32m+[m[32m    #budgetTable tbody tr.selected {[m
+[32m+[m[32m      background: rgba(106, 13, 173, 0.28);[m
+[32m+[m[32m      outline: 2px solid rgba(138,43,226,0.9);[m
+[32m+[m[32m    }[m
+[32m+[m
+[32m+[m[32m    /* Buttons */[m
+[32m+[m[32m    .table-actions { margin-top: 12px; display:flex; justify-content:flex-end; gap:10px; }[m
+[32m+[m[32m    .btn-action { padding:8px 14px; border-radius:8px; border:0; cursor:pointer; color:#fff; font-weight:600; }[m
+[32m+[m[32m    .btn-action.edit { background:#3a86ff; }[m
+[32m+[m[32m    .btn-action.delete { background:#ff4d6d; }[m
+[32m+[m
+[32m+[m[32m    /* MODAL base */[m
+[32m+[m[32m    .modal {[m
+[32m+[m[32m      position: fixed; inset: 0; display:flex; align-items:center; justify-content:center;[m
+[32m+[m[32m      background: rgba(0,0,0,0.55); z-index: 9999; padding: 20px;[m
+[32m+[m[32m    }[m
+[32m+[m[32m    .modal.hidden { display: none; }[m
+[32m+[m
+[32m+[m[32m    .modal-card {[m
+[32m+[m[32m      width: 360px; max-width: calc(100% - 40px);[m
+[32m+[m[32m      background: #0f0022; color: #fff; border-radius: 12px;[m
+[32m+[m[32m      box-shadow: 0 10px 30px rgba(0,0,0,0.5);[m
+[32m+[m[32m      padding: 18px;[m
+[32m+[m[32m      transform-origin: center;[m
+[32m+[m[32m      animation: modalIn .18s ease;[m
+[32m+[m[32m    }[m
+[32m+[m[32m    @keyframes modalIn {[m
+[32m+[m[32m      from { opacity: 0; transform: translateY(6px) scale(0.99); }[m
+[32m+[m[32m      to { opacity:1; transform: translateY(0) scale(1); }[m
+[32m+[m[32m    }[m
+[32m+[m[32m    .modal-card h3 { margin: 0 0 12px; font-size: 1.05rem; }[m
+[32m+[m[32m    .modal-card p { margin: 0 0 14px; color: #ddd; font-size: 0.95rem; }[m
+[32m+[m
+[32m+[m[32m    .modal-field { margin-bottom: 12px; }[m
+[32m+[m[32m    .modal-field input[type="number"] {[m
+[32m+[m[32m      width:100%; padding:10px; border-radius:8px; background:#1a0033; border:1px solid #3a2a5b; color:#fff;[m
+[32m+[m[32m    }[m
+[32m+[m
+[32m+[m[32m    .modal-actions { display:flex; justify-content: flex-end; gap: 8px; margin-top:6px; }[m
+[32m+[m[32m    .btn-primary { background:#3a86ff; color:#fff; padding:8px 12px; border-radius:8px; border:0; cursor:pointer; }[m
+[32m+[m[32m    .btn-cancel { background:#666; color:#fff; padding:8px 12px; border-radius:8px; border:0; cursor:pointer; }[m
+[32m+[m[32m    .btn-danger { background:#ff4d6d; color:#fff; padding:8px 12px; border-radius:8px; border:0; cursor:pointer; }[m
+[32m+[m
+[32m+[m[32m    /* Toast */[m
+[32m+[m[32m    .toast {[m
+[32m+[m[32m      position: fixed;[m
+[32m+[m[32m      right: 20px;[m
+[32m+[m[32m      bottom: 20px;[m
+[32m+[m[32m      background: rgba(20,20,30,0.95);[m
+[32m+[m[32m      color: #fff;[m
+[32m+[m[32m      padding: 10px 14px;[m
+[32m+[m[32m      border-radius: 10px;[m
+[32m+[m[32m      box-shadow: 0 6px 18px rgba(0,0,0,0.5);[m
+[32m+[m[32m      z-index: 10001;[m
+[32m+[m[32m      opacity: 0; transform: translateY(8px);[m
+[32m+[m[32m      transition: opacity 0.25s ease, transform 0.25s ease;[m
+[32m+[m[32m      font-weight:600;[m
+[32m+[m[32m    }[m
+[32m+[m[32m    .toast.show { opacity: 1; transform: translateY(0); }[m
+[32m+[m[32m  </style>[m
+[32m+[m[32m</head>[m
+[32m+[m[32m<body>[m
+[32m+[m[32m  <div class="background"></div>[m
+[32m+[m
+[32m+[m[32m  <div class="dashboard">[m
+[32m+[m[32m    <!-- Sidebar -->[m
+[32m+[m[32m    <aside class="sidebar" id="sidebar">[m
+[32m+[m[32m      <div class="top-group">[m
+[32m+[m[32m        <div class="logo">[m
+[32m+[m[32m          <img src="../Assets/logosmartspend.png" alt="SmartSpend Logo">[m
+[32m+[m[32m        </div>[m
+[32m+[m[32m        <nav>[m
+[32m+[m[32m          <ul class="menu" id="menu">[m
+[32m+[m[32m            <li class="menu-item" data-name="dashboard">[m
+[32m+[m[32m              <a href="index.html"><span class="material-symbols-outlined">dashboard</span><span class="label">Dashboard</span></a>[m
+[32m+[m[32m            </li>[m
+[32m+[m[32m            <li class="menu-item" data-name="upload">[m
+[32m+[m[32m              <a href="upload.html"><span class="material-symbols-outlined">upload</span><span class="label">Upload</span></a>[m
+[32m+[m[32m            </li>[m
+[32m+[m[32m            <li class="menu-item active" data-name="budget">[m
+[32m+[m[32m              <a href="budget.html"><span class="material-symbols-outlined">account_balance_wallet</span><span class="label">Budget</span></a>[m
+[32m+[m[32m            </li>[m
+[32m+[m[32m            <li class="menu-item" data-name="reports">[m
+[32m+[m[32m              <a href="reports.html"><span class="material-symbols-outlined">assignment</span><span class="label">Reports</span></a>[m
+[32m+[m[32m            </li>[m
+[32m+[m[32m            <li class="menu-item" data-name="logout">[m
+[32m+[m[32m              <a href="#"><span class="material-symbols-outlined">logout</span><span class="label">Logout</span></a>[m
+[32m+[m[32m            </li>[m
+[32m+[m[32m          </ul>[m
+[32m+[m[32m        </nav>[m
+[32m+[m[32m      </div>[m
+[32m+[m[32m      <div class="profile-menu" id="profileMenu" role="menu" aria-hidden="true">[m
+[32m+[m[32m  <ul>[m
+[32m+[m[32m    <li role="menuitem"><a href="profile.html"><i class="fas fa-user"></i> Profile</a></li>[m
+[32m+[m[32m    <li role="menuitem"><a href="settings.html"><i class="fas fa-cog"></i> Settings</a></li>[m
+[32m+[m[32m    <li role="menuitem"><a href="help.html"><i class="fas fa-question-circle"></i> Help</a></li>[m
+[32m+[m[32m    <li role="menuitem"><a href="login.html"><i class="fas fa-sign-out-alt"></i> Log Out</a></li>[m
+[32m+[m[32m  </ul>[m
+[32m+[m[32m</div>[m
+[32m+[m
+[32m+[m[32m      <div class="sidebar-footer">[m
