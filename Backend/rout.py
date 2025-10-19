@@ -1,6 +1,6 @@
 import os
 import sqlite3
-from flask import Flask, render_template, request, flash, session, json
+from flask import Flask, render_template, request, flash, session, json, jsonify
 from flask import redirect, url_for
 from ML.MLmodel import categorize_expense
 from flask import session
@@ -168,10 +168,6 @@ def reports():
 
 
 
-
-
-
-
 @app.route('/upload')
 def index():
     if "user_id" not in session:
@@ -185,7 +181,6 @@ def index():
         FROM expenses
         WHERE user_id = ?
         ORDER BY id DESC
-        LIMIT 5
     """, (session["user_id"],))
     expenses = c.fetchall()
     conn.close()
@@ -537,6 +532,75 @@ def upload_csv():
     os.remove(filepath)  # Clean up uploaded file
     return redirect(url_for("index"))
 
+@app.route('/get_spending_data')
+def get_spending_data():
+    if "user_id" not in session:
+        return jsonify({"error": "Unauthorized"}), 401
+
+    date_range = request.args.get("range", "monthly")
+    categories_param = request.args.get("categories", "")
+    categories = [c.strip() for c in categories_param.split(",") if c.strip() and c.lower() != "all"]
+
+    conn = sqlite3.connect(DB_PATH)
+    c = conn.cursor()
+
+    query = """
+        SELECT category, description, SUM(amount)
+        FROM expenses
+        WHERE user_id = ?
+    """
+    params = [session["user_id"]]
+
+    if categories:
+        placeholders = ",".join("?" * len(categories))
+        query += f" AND category IN ({placeholders})"
+        params.extend(categories)
+
+    # 🗓 Filter by date range
+    if date_range == "weekly":
+        query += " AND strftime('%W', date) = strftime('%W', 'now')"
+    elif date_range == "monthly":
+        query += " AND strftime('%m', date) = strftime('%m', 'now')"
+
+    query += " GROUP BY category, description"
+    c.execute(query, params)
+    rows = c.fetchall()
+    conn.close()
+
+    grouped = {}
+    for cat, desc, total in rows:
+        if cat not in grouped:
+            grouped[cat] = {"total": 0, "descriptions": []}
+        grouped[cat]["total"] += total
+        grouped[cat]["descriptions"].append(f"{desc}: ₱{total:,.0f}")
+
+    result = [
+        {"category": cat, "total": info["total"], "descriptions": info["descriptions"]}
+        for cat, info in grouped.items()
+    ]
+
+    return jsonify(result)
+
+
+
+@app.route('/get_categories')
+def get_categories():
+    if "user_id" not in session:
+        return jsonify({"error": "Unauthorized"}), 401
+
+    conn = sqlite3.connect(DB_PATH)
+    c = conn.cursor()
+    c.execute("""
+        SELECT DISTINCT category 
+        FROM expenses 
+        WHERE user_id = ?
+        ORDER BY category ASC
+    """, (session["user_id"],))
+    rows = c.fetchall()
+    conn.close()
+
+    categories = [r[0] for r in rows]
+    return jsonify(categories)
 
 
 if __name__ == "__main__":

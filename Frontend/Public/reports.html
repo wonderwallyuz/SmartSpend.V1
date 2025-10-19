@@ -268,26 +268,45 @@
         <div class="filter-fields">
           <div class="field">
     <label for="dateRange">Date Range:</label>
-    <select id="dateRangeSelection" class="input-dark">
+    <select id="dateRangeSelection" class="input-dark">    
       <option value="weekly">Weekly</option>
       <option value="monthly">Monthly</option>
     </select>
   </div>
           <div class="field">
-            <label for="category">Category:</label>
-            <select id="category" class="input-dark">
-              <option value="">All</option>
-              <option value="food">Food</option>
-              <option value="transport">Transport</option>
-              <option value="drinks">Drinks</option>
-              <option value="entertainment">Entertainment</option>
-              <option value="skincare">Skincare</option>
-              <option value="subscriptions">Subscriptions</option>
-            </select>
-          </div>
-          <button id="applyFilters" class="btn-primary">Apply Filters</button>
-        </div>
+  <label for="category">Category:</label>
+  <select id="category" class="input-dark">
+    <option value="">All</option>
+  </select>
+</div>
+<button id="applyFilters" class="btn-primary">Apply Filters</button>
+
       </section>
+      <script>
+async function loadCategories() {
+  const res = await fetch('/get_categories');
+  const data = await res.json();
+
+  const categorySelect = document.getElementById('category');
+  categorySelect.innerHTML = '<option value="">All</option>'; // reset
+
+  if (data.error) {
+    console.error("Not logged in or error fetching categories");
+    return;
+  }
+
+  data.forEach(cat => {
+    const option = document.createElement('option');
+    option.value = cat.toLowerCase();
+    option.textContent = cat.charAt(0).toUpperCase() + cat.slice(1);
+    categorySelect.appendChild(option);
+  });
+}
+
+// load on page start
+window.addEventListener('DOMContentLoaded', loadCategories);
+</script>
+
 
       <!-- Chart -->
       <section class="chart-area">
@@ -339,77 +358,90 @@
       </section>
     </main>
   </div>
+<script>
+const ctx = document.getElementById('categoryChart').getContext('2d');
+let categoryChart;
 
-  <script>
-    const ctx = document.getElementById('categoryChart').getContext('2d');
-    const monthlySpending = {
-      Food: [300, 450, 720, 650, 800, 900],
-      Transport: [500, 400, 450, 300, 350, 400],
-      Drinks: [200, 250, 380, 310, 290, 320],
-      Entertainment: [400, 350, 300, 450, 380, 500],
-      Skincare: [600, 500, 600, 700, 550, 580],
-      Subscriptions: [250, 200, 230, 300, 250, 280]
-    };
-    const months = ['May', 'June', 'July', 'August', 'September', 'October'];
+async function loadChart() {
+  const range = document.getElementById('dateRangeSelection').value;
+  const category = document.getElementById('category').value;
 
-    new Chart(ctx, {
-      type: 'bar',
-      data: {
-        labels: Object.keys(monthlySpending),
-        datasets: [{
-          data: Object.values(monthlySpending).map(arr => arr[arr.length - 1]),
-          backgroundColor: ['#5AC4FF','#FFFFFF','#BCA7FF','#7A7DFF','#D54FFF','#CCCCFF'],
-          borderRadius: 6,
-          borderSkipped: false,
-          barThickness: 70
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: { display: false },
-          tooltip: {
-            backgroundColor: 'rgba(30, 0, 60, 0.95)',
-            titleColor: '#f07cff',
-            titleFont: { weight: 'bold', size: 14 },
-            bodyColor: '#fff',
-            borderColor: '#f07cff',
-            borderWidth: 1,
-            padding: 10,
-            callbacks: {
-              title: (context) => `${context[0].label} Spending`,
-              label: (context) => {
-                const category = context.label;
-                const data = monthlySpending[category];
-                let lines = [];
-                months.forEach((m, i) => {
-                  lines.push(`${m}: ₱${data[i].toLocaleString()}`);
-                });
-                return lines; // vertical list format
-              }
+  const res = await fetch(`/get_spending_data?range=${range}&category=${category}`);
+  const data = await res.json();
+
+  if (data.error) {
+    alert("Please log in first!");
+    return;
+  }
+
+  const labels = data.map(d => d.category);
+  const totals = data.map(d => d.total);
+  const descriptions = data.map(d => d.descriptions);
+
+  if (categoryChart) categoryChart.destroy();
+
+  categoryChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [{
+        data: totals,
+        backgroundColor: ['#5AC4FF','#FFFFFF','#BCA7FF','#7A7DFF','#D54FFF','#CCCCFF'],
+        borderRadius: 6,
+        borderSkipped: false,
+        barThickness: 70
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: 'rgba(30, 0, 60, 0.95)',
+          titleColor: '#f07cff',
+          titleFont: { weight: 'bold', size: 14 },
+          bodyColor: '#fff',
+          borderColor: '#f07cff',
+          borderWidth: 1,
+          padding: 12,
+          callbacks: {
+            title: (context) => `${context[0].label} Spending`,
+            label: (context) => {
+              const index = context.dataIndex;
+              return descriptions[index]; // return multiple lines
+            },
+            footer: (context) => {
+              const index = context[0].dataIndex;
+              return `Total: ₱${totals[index].toLocaleString()}`;
             }
           }
+        }
+      },
+      scales: {
+        x: {
+          grid: { display: false },
+          ticks: { color: '#fff', font: { size: 14 } }
         },
-        scales: {
-          x: {
-            grid: { display: false },
-            ticks: { color: '#fff', font: { size: 14 } }
-          },
-          y: {
-            grid: { color: 'rgba(255,255,255,0.1)' },
-            ticks: { color: '#fff', font: { size: 14 } }
-          }
+        y: {
+          grid: { color: 'rgba(255,255,255,0.1)' },
+          ticks: { color: '#fff', font: { size: 14 } }
         }
       }
-    });
+    }
+  });
+}
 
-    flatpickr("#dateRange", {
-      mode: "range",
-      dateFormat: "Y-m-d",
-      altInput: true,
-      altFormat: "F j, Y"
-    });
-  </script>
+document.getElementById('applyFilters').addEventListener('click', loadChart);
+window.addEventListener('DOMContentLoaded', loadChart);
+</script>
+
+<!-- Choices.js CSS -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/choices.js/public/assets/styles/choices.min.css" />
+
+<!-- Choices.js JS -->
+<script src="https://cdn.jsdelivr.net/npm/choices.js/public/assets/scripts/choices.min.js"></script>
+
+
 </body>
 </html>
