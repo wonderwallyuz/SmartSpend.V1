@@ -41,6 +41,18 @@ CREATE TABLE IF NOT EXISTS expenses (
 )
 """)
 
+c.execute("""
+CREATE TABLE IF NOT EXISTS notifications (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL,
+    message TEXT NOT NULL,
+    type TEXT CHECK(type IN ('alert', 'tip', 'good')) NOT NULL,
+    is_read INTEGER DEFAULT 0,
+    timestamp TEXT DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id)
+)
+""")
+
 c = conn.cursor()
 c.execute("DELETE FROM expenses WHERE date IS NULL OR TRIM(date) = ''")
 
