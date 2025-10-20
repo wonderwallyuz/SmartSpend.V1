@@ -497,16 +497,51 @@ window.addEventListener('DOMContentLoaded', loadCategories);
         <!-- Improved Insight Section -->
        <div class="insights">
   <h3>SmartSpend Insights</h3>
-  {% if insights %}
-    <ul>
-      {% for line in insights.split('\n') if line.strip() %}
-        <li>{{ line }}</li>
-      {% endfor %}
-    </ul>
-  {% else %}
-    <p>No insights available yet.</p>
-  {% endif %}
+
+  <!-- Placeholder while loading -->
+  <p id="loading-text"><em>Generating insights with SmartSpend AI...</em></p>
+
+  <!-- Insights will be injected here -->
+  <ul id="insight-list" style="display: none;"></ul>
+
+  <!-- Error message placeholder -->
+  <p id="insight-error" style="display: none; color: #f07cff;"></p>
 </div>
+
+<script>
+document.addEventListener("DOMContentLoaded", async () => {
+  const loadingText = document.getElementById("loading-text");
+  const insightList = document.getElementById("insight-list");
+  const errorText = document.getElementById("insight-error");
+
+  try {
+    const res = await fetch("/reports/insights");
+    const data = await res.json();
+
+    // Hide loading text
+    loadingText.style.display = "none";
+
+    if (data.insights) {
+      // Split insights into lines
+      const lines = data.insights.split("\n").filter(line => line.trim());
+      lines.forEach(line => {
+        const li = document.createElement("li");
+        li.textContent = line.trim();
+        insightList.appendChild(li);
+      });
+      insightList.style.display = "flex";
+    } else {
+      errorText.textContent = "No insights available yet.";
+      errorText.style.display = "block";
+    }
+  } catch (err) {
+    loadingText.style.display = "none";
+    errorText.textContent = "Error loading insights. Please try again later.";
+    errorText.style.display = "block";
+    console.error("Error fetching insights:", err);
+  }
+});
+</script>
 
       </section>
     </main>
