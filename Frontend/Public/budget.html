@@ -16,6 +16,138 @@
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" />
   <script src="https://kit.fontawesome.com/2d9a2c9d4d.js" crossorigin="anonymous"></script>
 
+  <style>
+    body {
+      overflow-y: auto;
+    }
+        /* Prevent sidebar from scrolling */
+    .sidebar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    /* Push main content so it doesn't go behind sidebar */
+    .main {
+      margin-left: 260px; /* adjust if your sidebar is a different width */
+    }
+
+
+    /* Notification button */
+    .notification {
+      position: relative;
+      margin-right: 25px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .notification .material-symbols-outlined {
+      font-size: 28px;
+      color: #fff;
+      transition: all 0.3s ease;
+      text-shadow: 0 0 6px rgba(255, 0, 255, 0.3);
+    }
+    .notification:hover .material-symbols-outlined {
+      color: #ff77ff;
+      text-shadow: 0 0 12px rgba(255, 77, 255, 0.8);
+      transform: scale(1.1);
+    }
+    .notification .badge {
+      position: absolute;
+      top: -4px;
+      right: -6px;
+      background: linear-gradient(135deg, #ff4d4d, #ff8b8b);
+      color: #fff;
+      border-radius: 50%;
+      min-width: 18px;
+      height: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 700;
+      box-shadow: 0 0 6px rgba(255, 77, 77, 0.8);
+    }
+
+    /* Notification panel */
+    .notif-panel {
+      position: absolute;
+      top: 70px;
+      right: 40px;
+      width: 320px;
+      background: rgba(90, 50, 150, 0.25);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 16px;
+      box-shadow: 0 4px 30px rgba(0, 0, 0, 0.4);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      color: #fff;
+      padding: 15px 18px;
+      display: none;
+      z-index: 999;
+      animation: fadeIn 0.3s ease;
+    }
+    .notif-panel.active {
+      display: block;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .notif-panel h4 {
+      font-size: 15px;
+      font-weight: 700;
+      margin-bottom: 12px;
+      padding-bottom: 6px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+      color: #f0d9ff;
+      letter-spacing: 0.5px;
+    }
+
+    /* Notification items */
+    .notif-item {
+      background: rgba(255, 255, 255, 0.1);
+      padding: 12px 14px;
+      border-radius: 10px;
+      margin-bottom: 10px;
+      font-size: 13px;
+      border-left: 3px solid transparent;
+      transition: all 0.3s ease;
+    }
+    .notif-item.alert {
+      border-left-color: #ff4d4d;
+      box-shadow: 0 0 10px rgba(255, 77, 77, 0.3);
+    }
+    .notif-item.tip {
+      border-left-color: #4da6ff;
+      box-shadow: 0 0 10px rgba(77, 166, 255, 0.3);
+    }
+    .notif-item.good {
+      border-left-color: #33cc99;
+      box-shadow: 0 0 10px rgba(51, 204, 153, 0.3);
+    }
+    .notif-item:hover {
+      transform: scale(1.02);
+      background: rgba(255, 255, 255, 0.15);
+    }
+
+    .notif-empty {
+      text-align: center;
+      font-size: 13px;
+      color: rgba(255,255,255,0.7);
+      padding: 10px;
+      animation: fadeIn 0.4s ease;
+    }
+
+    .content-section {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
   <!-- Small inline styles for selection, modals and toast (overrides coming from style.css where needed) -->
   <style>
     /* Ensure background doesn't intercept clicks */
@@ -89,49 +221,65 @@
   </style>
 </head>
 <body>
+  <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+
   <div class="background"></div>
 
   <div class="dashboard">
     <!-- Sidebar -->
-    <aside class="sidebar" id="sidebar">
-      <div class="top-group">
-        <div class="logo">
-          <img src="../Assets/logosmartspend.png" alt="SmartSpend Logo">
-        </div>
-        <nav>
-          <ul class="menu" id="menu">
-            <li class="nav-item" data-name="dashboard">
-              <a href="/dashboard"><span class="material-symbols-outlined">dashboard</span><span class="label">Dashboard</span></a>
-            </li>
-            <li class="nav-item" data-name="upload">
-              <a href="/upload"><span class="material-symbols-outlined">upload</span><span class="label">Upload</span></a>
-            </li>
-            <li class="menu-item active" data-name="budget">
-              <a href="/budget"><span class="material-symbols-outlined">account_balance_wallet</span><span class="label">Budget</span></a>
-            </li>
-            <li class="nav-item" data-name="reports">
-              <a href="/reports"><span class="material-symbols-outlined">assignment</span><span class="label">Reports</span></a>
-            </li>
-            <li class="nav-item" data-name="logout">
-              <a href="/logout"><span class="material-symbols-outlined">logout</span><span class="label">Logout</span></a>
-            </li>
-          </ul>
-        </nav>
-      </div>
-      <div class="profile-menu" id="profileMenu" role="menu" aria-hidden="true">
-  <ul>
-    <li role="menuitem"><a href="/profile"><i class="fas fa-user"></i> Profile</a></li>
-    <li role="menuitem"><a href="/settings"><i class="fas fa-cog"></i> Settings</a></li>
-    <li role="menuitem"><a href="/help"><i class="fas fa-question-circle"></i> Help</a></li>
-    <li role="menuitem"><a href="/login"><i class="fas fa-sign-out-alt"></i> Log Out</a></li>
+   <aside class="sidebar" id="sidebar" aria-label="Main Navigation">
+  <div class="top-group">
+    <!-- Logo -->
+    <div class="logo">
+      <img src="{{ url_for('static', filename='logosmartspend.png') }}" alt="SmartSpend Logo">
+    </div>
+
+<!-- Navigation -->
+<nav>
+  <ul class="menu" id="menu">
+    <!-- Dashboard -->
+    <li class="menu-item {% if request.path == url_for('dashboard') %}active{% endif %}" data-name="dashboard">
+      <a href="{{ url_for('dashboard') }}">
+        <span class="material-symbols-outlined">dashboard</span>
+        <span class="label">Dashboard</span>
+      </a>
+    </li>
+
+    <!-- Upload -->
+    <li class="menu-item {% if request.path == url_for('index') %}active{% endif %}" data-name="upload">
+      <a href="{{ url_for('index') }}">
+        <span class="material-symbols-outlined">upload</span>
+        <span class="label">Upload</span>
+      </a>
+    </li>
+
+    <!-- Budget -->
+    <li class="menu-item {% if request.path == url_for('budget') %}active{% endif %}" data-name="budget">
+      <a href="{{ url_for('budget') }}">
+        <span class="material-symbols-outlined">account_balance_wallet</span>
+        <span class="label">Budget</span>
+      </a>
+    </li>
+
+    <!-- Reports -->
+    <li class="menu-item {% if request.path == url_for('reports') %}active{% endif %}" data-name="reports">
+      <a href="{{ url_for('reports') }}">
+        <span class="material-symbols-outlined">assignment</span>
+        <span class="label">Reports</span>
+      </a>
+    </li>
+
+    <!-- Logout -->
+    <li class="menu-item" data-name="logout">
+      <a href="{{ url_for('logout') }}">
+        <span class="material-symbols-outlined">logout</span>
+        <span class="label">Logout</span>
+      </a>
+    </li>
   </ul>
-</div>
+</nav>
 
-      <div class="sidebar-footer">
-        <button id="collapseBtn" class="collapse-btn"><i class="fas fa-chevron-left"></i></button>
-      </div>
-    </aside>
-
+</aside>
     <!-- Main Content -->
     <main class="main">
       <!-- Header -->
@@ -141,15 +289,34 @@
           <h2 class="page-title">Set Your Budget</h2>
         </div>
         <div class="right">
+          <div class="notification" id="notifBtn">
+            <span class="material-symbols-outlined">notifications</span>
+            <span class="badge" id="notifCount">0</span>
+          </div>
+
           <div class="user" id="userProfile">
             <div class="avatar"><i class="fas fa-user"></i></div>
             <div class="user-info">
               <h4>{{ username }}</h4>
+              <p>Student</p>
             </div>
           </div>
+
+    <div class="profile-menu" id="profileMenu" role="menu" aria-hidden="true">
+  <ul>
+    <li role="menuitem"><a href="/profile"><i class="fas fa-user"></i> Profile</a></li>
+    <li role="menuitem"><a href="/settings"><i class="fas fa-cog"></i> Settings</a></li>
+    <li role="menuitem"><a href="/help"><i class="fas fa-question-circle"></i> Help</a></li>
+    <li role="menuitem"><a href="/login"><i class="fas fa-sign-out-alt"></i> Log Out</a></li>
+  </ul>
+</div>
+
+
+        <div class="notif-panel" id="notifPanel">
+          <h4>Notifications</h4>
+          <div id="notifList" class="notif-list"></div>
         </div>
       </header>
-
       <!-- Add Budget -->
         
 
@@ -426,5 +593,54 @@
 
 
   </script>
+</body>
+</html>
+ <!-- JS -->
+  <script>
+    const notifBtn = document.getElementById('notifBtn');
+    const notifPanel = document.getElementById('notifPanel');
+    const notifList = document.getElementById('notifList');
+    const notifCount = document.getElementById('notifCount');
+
+    const weeklyBudget = 2000;
+    const spent = 1650;
+    const remaining = weeklyBudget - spent;
+    const ratio = spent / weeklyBudget;
+
+    const notifications = [];
+
+    if (ratio >= 0.8) {
+      notifications.push({ type: 'alert', text: 'You have spent over 80% of your weekly budget. Try to reduce spending.' });
+    } else if (ratio >= 0.5) {
+      notifications.push({ type: 'tip', text: 'You have used over 50% of your weekly budget. Plan your remaining days carefully.' });
+    } else {
+      notifications.push({ type: 'good', text: 'Good job! You are spending wisely within your budget.' });
+    }
+
+    if (remaining < 300) {
+      notifications.push({ type: 'alert', text: 'Your remaining balance is below ₱300. Consider limiting expenses.' });
+    }
+
+    if (notifications.length > 0) {
+      notifList.innerHTML = notifications.map(n => `<div class="notif-item ${n.type}">${n.text}</div>`).join('');
+      notifCount.textContent = notifications.length;
+    } else {
+      notifList.innerHTML = `<div class="notif-empty">No new notifications</div>`;
+      notifCount.style.display = 'none';
+    }
+
+    notifBtn.addEventListener('click', () => {
+      notifPanel.classList.toggle('active');
+      notifCount.style.display = 'none';
+    });
+
+    document.addEventListener('click', (e) => {
+      if (!notifPanel.contains(e.target) && !notifBtn.contains(e.target)) {
+        notifPanel.classList.remove('active');
+      }
+    });
+  </script>
+
+  <script src="script.js"></script>
 </body>
 </html>

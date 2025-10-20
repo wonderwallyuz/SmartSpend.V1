@@ -10,154 +10,139 @@
     const menuItems = document.querySelectorAll('.menu-item');
     const userProfile = document.getElementById('userProfile');
     const profileMenu = document.getElementById('profileMenu');
-    
 
     const isMobile = () => window.innerWidth <= 768;
-    try {
-      if (collapseBtn && sidebar) {
-        collapseBtn.addEventListener('click', function (e) {
-          e.preventDefault();
-          if (!isMobile()) {
-            sidebar.classList.toggle('collapsed');
-            const pressed = sidebar.classList.contains('collapsed');
-            collapseBtn.setAttribute('aria-pressed', String(pressed));
-            collapseBtn.innerHTML = pressed
-              ? '<i class="fas fa-chevron-right"></i>'
-              : '<i class="fas fa-chevron-left"></i>';
-          } else {
-            sidebar.classList.toggle('show');
-          }
-        });
-      }
+   try {
+  const sidebar = document.getElementById('sidebar');
+  const toggleBtn = document.getElementById('toggleSidebarBtn');
+  const menuItems = document.querySelectorAll('.menu-item');
+  const isMobile = () => window.innerWidth <= 768;
 
-      if (toggleBtn && sidebar) {
-        toggleBtn.addEventListener('click', function (e) {
-          e.stopPropagation();
-          sidebar.classList.toggle('show');
-        });
-      }
-      document.addEventListener('click', function (e) {
-        if (isMobile() && sidebar && sidebar.classList.contains('show')) {
-          const clickedInside = sidebar.contains(e.target) || (toggleBtn && toggleBtn.contains(e.target));
-          if (!clickedInside) {
-            sidebar.classList.remove('show');
-          }
-        }
-      });
+  // ✅ Mobile toggle button
+  if (toggleBtn && sidebar) {
+    toggleBtn.addEventListener('click', function (e) {
+      e.stopPropagation();
+      sidebar.classList.toggle('show');
+    });
+  }
 
-      window.addEventListener('resize', function () {
-        if (window.innerWidth > 768) {
-          if (sidebar && sidebar.classList.contains('show')) sidebar.classList.remove('show');
-        }
-      });
-    } catch (err) {
-      console.error('Sidebar init error:', err);
+  // ✅ Hide sidebar when clicking outside (mobile)
+  document.addEventListener('click', function (e) {
+    if (isMobile() && sidebar && sidebar.classList.contains('show')) {
+      const clickedInside =
+        sidebar.contains(e.target) || (toggleBtn && toggleBtn.contains(e.target));
+      if (!clickedInside) sidebar.classList.remove('show');
     }
-    function setActiveMenu(item) {
-      menuItems.forEach(i => i.classList.remove('active'));
-      if (item) item.classList.add('active');
-    }
+  });
 
-    function showSectionByName(name) {
-      if (!name) return;
-      const targetId = `${name}Section`;
-      const target = document.getElementById(targetId);
-      if (target) {
+  // ✅ Remove .show when resizing to desktop
+  window.addEventListener('resize', function () {
+    if (window.innerWidth > 768 && sidebar.classList.contains('show')) {
+      sidebar.classList.remove('show');
+    }
+  });
+
+  // ✅ Highlight active menu item
+  function setActiveMenu(item) {
+    menuItems.forEach(i => i.classList.remove('active'));
+    if (item) item.classList.add('active');
+  }
+
+  // ✅ Show specific section by name (if single-page setup)
+  function showSectionByName(name) {
+    const allSections = document.querySelectorAll('[id$="Section"], [data-section]');
+    if (allSections.length === 0) return; // skip if using full Flask pages
+
+    const targetId = document.getElementById(`${name}Section`)
+      ? `${name}Section`
+      : name;
+    const target = document.getElementById(targetId);
+
+    allSections.forEach(s => {
+      s.style.display = s === target ? 'block' : 'none';
+    });
+
+    const titleEl = document.querySelector('.page-title');
+    if (titleEl) {
+      const nice = name.charAt(0).toUpperCase() + name.slice(1);
+      titleEl.textContent = nice;
+    }
+  }
+
+  // ✅ Expose globally (for inline use)
+  window.showSection = function (idOrName) {
+    if (!idOrName) return;
+    if (idOrName.endsWith('Section')) {
+      const el = document.getElementById(idOrName);
+      if (el) {
         const all = document.querySelectorAll('[id$="Section"], [data-section]');
         all.forEach(s => {
-          if (s.id === targetId) s.style.display = 'block';
-          else s.style.display = 'none';
+          s.style.display = s === el ? 'block' : 'none';
         });
-        const titleEl = document.querySelector('.page-title');
-        if (titleEl) {
-          const nice = name.charAt(0).toUpperCase() + name.slice(1);
-          titleEl.textContent = nice;
-        }
-      } else {
-        const titleEl = document.querySelector('.page-title');
-        if (titleEl) {
-          const nice = name.charAt(0).toUpperCase() + name.slice(1);
-          titleEl.textContent = nice;
-        }
       }
+    } else {
+      showSectionByName(idOrName);
     }
+  };
 
-    // make function available if HTML uses inline onclick="showSection('uploadSection')"
-    window.showSection = function (idOrName) {
-      // allow call with either 'uploadSection' or 'upload'
-      if (!idOrName) return;
-      if (idOrName.endsWith('Section')) {
-        const el = document.getElementById(idOrName);
-        if (el) {
-          // show that and hide others
-          const all = document.querySelectorAll('[id$="Section"], [data-section]');
-          all.forEach(s => {
-            s.style.display = (s.id === idOrName) ? 'block' : 'none';
-          });
-        }
-      } else {
-        showSectionByName(idOrName);
+  // ✅ Menu click behavior
+  menuItems.forEach(item => {
+    item.addEventListener('click', function (e) {
+      const link = item.querySelector('a');
+      const href = link ? link.getAttribute('href') : '#';
+      const name = item.dataset.name;
+
+      // If href starts with "/" (Flask route), go to page
+      if (href.startsWith('/')) return; // allow Flask navigation
+
+      e.preventDefault();
+      setActiveMenu(item);
+      if (name) showSectionByName(name);
+      if (isMobile() && sidebar && sidebar.classList.contains('show')) {
+        sidebar.classList.remove('show');
       }
-    };
+    });
+  });
 
-    try {
-      menuItems.forEach(item => {
-        item.addEventListener('click', function (e) {
-          // allow anchor href but prevent jumping page
-          e.preventDefault();
-          setActiveMenu(item);
+  // ✅ Always show dashboard on load (if section exists)
+  const dashboardSection = document.getElementById('dashboardSection');
+  if (dashboardSection) {
+    showSectionByName('dashboard');
+  }
 
-          const name = item.dataset.name;
-          if (name) {
-            showSectionByName(name);
-          }
-
-          // close mobile sidebar after clicking a menu item
-          if (isMobile() && sidebar && sidebar.classList.contains('show')) {
-            sidebar.classList.remove('show');
-          }
-        });
-      });
-    } catch (err) {
-      console.error('Menu init error:', err);
-    }
+} catch (err) {
+  console.error('Sidebar init error:', err);
+}
 
     /* --------------------
        PROFILE DROPDOWN
     -------------------- */
     try {
-      if (userProfile && profileMenu) {
-        userProfile.addEventListener('click', function (e) {
-          e.stopPropagation();
-          const open = profileMenu.classList.toggle('show');
-          userProfile.setAttribute('aria-expanded', String(open));
-          profileMenu.setAttribute('aria-hidden', String(!open));
-          // position logic can be added if needed; this just toggles visibility
-        });
-
-        // keyboard accessibility
-        userProfile.addEventListener('keydown', function (e) {
-          if (e.key === 'Enter' || e.key === ' ') {
-            e.preventDefault();
-            userProfile.click();
-          }
-        });
-
-        // close when clicking outside
-        document.addEventListener("DOMContentLoaded", () => {
-        const navItems = document.querySelectorAll(".nav-item");
-
-        navItems.forEach(item => {
-          item.addEventListener("click", (e) => {
-            // Remove active class from all
-            navItems.forEach(i => i.classList.remove("active"));
-            // Add active to this one
-            item.classList.add("active");
-            // Let the browser navigate normally via href
-    });
+    if (userProfile && profileMenu) {
+  userProfile.addEventListener('click', function (e) {
+    e.stopPropagation();
+    const open = profileMenu.classList.toggle('show');
+    userProfile.setAttribute('aria-expanded', String(open));
+    profileMenu.setAttribute('aria-hidden', String(!open));
   });
-});
-      }
+
+  // keyboard accessibility
+  userProfile.addEventListener('keydown', function (e) {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      userProfile.click();
+    }
+  });
+
+  // close when clicking outside
+  document.addEventListener('click', function (e) {
+    if (!userProfile.contains(e.target) && !profileMenu.contains(e.target)) {
+      profileMenu.classList.remove('show');
+      userProfile.setAttribute('aria-expanded', 'false');
+      profileMenu.setAttribute('aria-hidden', 'true');
+    }
+  });
+}
     } catch (err) {
       console.error('Profile menu init error:', err);
     }
@@ -209,6 +194,8 @@
     } catch (err) {
       console.error('Chart setup error:', err);
     }
+
+    
 
     /* ---------- debugging hint (remove after testing) ---------- */
     // console.log('SmartSpend UI initialized');
