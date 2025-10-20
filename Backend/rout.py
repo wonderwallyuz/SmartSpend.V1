@@ -124,30 +124,20 @@ def reports():
         GROUP BY category, weekday
     """, (session["user_id"],))
     weekday_data = c.fetchall()
-
-    days_map = {
-        "0": "Sunday", 
-        "1": "Monday", 
-        "2": "Tuesday", 
-        "3": "Wednesday",
-        "4": "Thursday", 
-        "5": "Friday", 
-        "6": "Saturday"
-    }
+    conn.close()
 
     from collections import defaultdict
+    days_map = {
+        "0": "Sunday", "1": "Monday", "2": "Tuesday",
+        "3": "Wednesday", "4": "Thursday", "5": "Friday", "6": "Saturday"
+    }
+
     category_days = defaultdict(lambda: {"day": None, "amount": 0})
     for cat, weekday, total in weekday_data:
-    # ✅ Skip invalid weekday values
-        if not weekday or weekday not in days_map:
-            continue
-        if total > category_days[cat]["amount"]:
+        if weekday in days_map and total > category_days[cat]["amount"]:
             category_days[cat] = {"day": days_map[weekday], "amount": total}
 
-
-    c.execute("SELECT SUM(amount) FROM expenses WHERE user_id = ?", (session["user_id"],))
-    total_spent = c.fetchone()[0] or 0
-    conn.close()
+    total_spent = sum([amt for _, amt in grouped_expenses]) or 0
 
     breakdown_data = []
     for cat, total_amount in grouped_expenses:
@@ -155,16 +145,36 @@ def reports():
         most_active_day = category_days[cat]["day"] if cat in category_days else "N/A"
         breakdown_data.append((cat, total_amount, percent, most_active_day))
 
-    # ✅ Prepare expense summary and call ML function
-    expense_summary = {cat: total_amount for cat, total_amount, _, _ in breakdown_data}
-    insights = generate_smartspend_insights(expense_summary)
-
     return render_template(
         "reports.html",
         username=username,
-        breakdown_data=breakdown_data,
-        insights=insights
+        breakdown_data=breakdown_data
     )
+
+
+@app.route('/reports/insights')
+def reports_insights():
+    # ⚡ Separate endpoint for ML loading
+    username = session.get('username')
+    if not username:
+        return {"error": "Not logged in"}, 403
+
+    conn = sqlite3.connect(DB_PATH)
+    c = conn.cursor()
+    c.execute("""
+        SELECT category, SUM(amount) as total_amount
+        FROM expenses
+        WHERE user_id = ?
+        GROUP BY category
+    """, (session["user_id"],))
+    expense_summary = dict(c.fetchall())
+    conn.close()
+
+    # 🧠 Run ML model
+    insights = generate_smartspend_insights(expense_summary)
+
+    return {"insights": insights}
+
 
 
 
