@@ -451,47 +451,64 @@
         </div>
       </header>
 
-      <!-- Filters -->
-      <section class="filters">
-        <div class="filter-fields">
-          <div class="field">
-    <label for="dateRange">Date Range:</label>
-    <select id="dateRangeSelection" class="input-dark">    
-      <option value="weekly">Weekly</option>
-      <option value="monthly">Monthly</option>
-    </select>
-  </div>
-          <div class="field">
+    <!-- Filters -->
+<section class="filters">
+  <div class="filter-fields">
+    <div class="field">
+      <label for="dateRange">Date Range:</label>
+      <select id="dateRangeSelection" class="input-dark">    
+        <option value="weekly">Weekly</option>
+        <option value="monthly">Monthly</option>
+      </select>
+    </div>
+
+  <!-- Category Field (multi-select version) -->
+<div class="field">
   <label for="category">Category:</label>
-  <select id="category" class="input-dark">
-    <option value="">All</option>
-  </select>
+  <div class="multi-select" id="category-select">
+    <div class="select-box">Select Categories ▾</div>
+    <div class="checkbox-options" id="category-options">
+      <!-- Categories will be loaded here -->
+    </div>
+  </div>
 </div>
-<button id="applyFilters" class="btn-primary">Apply Filters</button>
 
-      </section>
-      <script>
+
+    <button id="applyFilters" class="btn-primary">Apply Filters</button>
+  </div>
+</section>
+
+      
+<script>
 async function loadCategories() {
-  const res = await fetch('/get_categories');
-  const data = await res.json();
+  try {
+    const res = await fetch('/get_categories');
+    const data = await res.json();
 
-  const categorySelect = document.getElementById('category');
-  categorySelect.innerHTML = '<option value="">All</option>'; // reset
+    if (data.error) {
+      console.error("Not logged in or error fetching categories");
+      return;
+    }
 
-  if (data.error) {
-    console.error("Not logged in or error fetching categories");
-    return;
+    const optionsContainer = document.getElementById('category-options');
+    optionsContainer.innerHTML = ''; // clear existing options
+
+    // Create a checkbox for each category
+    data.forEach(cat => {
+      const label = document.createElement('label');
+      const checkbox = document.createElement('input');
+      checkbox.type = 'checkbox';
+      checkbox.value = cat;
+      label.appendChild(checkbox);
+      label.append(' ' + cat);
+      optionsContainer.appendChild(label);
+    });
+  } catch (err) {
+    console.error('Error loading categories:', err);
   }
-
-  data.forEach(cat => {
-    const option = document.createElement('option');
-    option.value = cat.toLowerCase();
-    option.textContent = cat.charAt(0).toUpperCase() + cat.slice(1);
-    categorySelect.appendChild(option);
-  });
 }
 
-// load on page start
+// Load categories when the page starts
 window.addEventListener('DOMContentLoaded', loadCategories);
 </script>
 
@@ -587,9 +604,17 @@ let categoryChart;
 
 async function loadChart() {
   const range = document.getElementById('dateRangeSelection').value;
-  const category = document.getElementById('category').value;
 
-  const res = await fetch(`/get_spending_data?range=${range}&category=${category}`);
+// collect all checked categories from custom dropdown
+const checked = Array.from(
+  document.querySelectorAll('#category-select input[type="checkbox"]:checked')
+).map(cb => cb.value);
+
+// join them into a comma-separated list
+const categories = checked.join(',');
+
+const res = await fetch(`/get_spending_data?range=${range}&categories=${encodeURIComponent(categories)}`);
+
   const data = await res.json();
 
   if (data.error) {
@@ -737,4 +762,24 @@ notifList.addEventListener('click', async (e) => {
 
 // Auto-load notifications when page opens
 loadNotifications();
+</script>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const multiSelect = document.getElementById('category-select');
+  const selectBox = multiSelect.querySelector('.select-box');
+
+  // Toggle dropdown visibility
+  selectBox.addEventListener('click', (e) => {
+    e.stopPropagation(); // prevent closing instantly
+    multiSelect.classList.toggle('open');
+  });
+
+  // Close when clicking outside
+  document.addEventListener('click', (e) => {
+    if (!multiSelect.contains(e.target)) {
+      multiSelect.classList.remove('open');
+    }
+  });
+});
 </script>

@@ -633,6 +633,7 @@ body {
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
+
 .budget-form button:hover {
   transform: translateY(-2px);
   box-shadow: 0 6px 15px rgba(127, 92, 255, 0.5);
@@ -703,6 +704,8 @@ body {
   outline: 2px solid #6a0dad;
 }
 
+
+
 /* ===== MAIN AREA ===== */
 .main {
   flex: 1;
@@ -721,7 +724,6 @@ body {
   font-size: 1.5rem;
   font-weight: 600;
 }
-
 
 /* ===== FILTER BAR ===== */
 .filters {
@@ -750,6 +752,92 @@ body {
   border-radius: 8px;
   border: none;
   outline: none;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #fff;
+}
+
+/* ===== BUTTON ===== */
+.btn-primary {
+  background: #a855f7;
+  color: #fff;
+  border: none;
+  padding: 0.75rem 1.25rem;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+.btn-primary:hover {
+  background: #9333ea;
+}
+/* ===== MATCHING MULTI-SELECT ===== */
+.multi-select {
+  position: relative;
+  width: 220px; /* match Date Range input */
+  z-index: 2000; /* ensure it sits above charts */
+}
+
+.select-box {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px; /* same as other inputs */
+  color: #fff;
+  padding: 0.6rem 1rem; /* consistent with .input-dark */
+  cursor: pointer;
+  width: 100%;
+  user-select: none;
+  font-size: 0.95rem;
+  line-height: 1.2rem;
+  transition: border-color 0.2s ease;
+}
+
+.select-box:hover {
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.select-box:focus {
+  outline: none;
+  border-color: #9f6eff;
+}
+
+.checkbox-options {
+  display: none;
+  position: absolute;
+  top: calc(100% + 0.25rem);
+  left: 0;
+  width: 100%;
+  background: #1a1033;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  padding: 0.5rem;
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.45);
+  z-index: 5000; /* sits above everything */
+}
+
+.multi-select.open .checkbox-options {
+  display: block;
+}
+
+.checkbox-options label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.35rem 0.5rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+.checkbox-options label:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+/* Ensure filters section allows dropdown to overflow */
+.filters {
+  position: relative;
+  z-index: 1000;
+  overflow: visible; /* prevents clipping */
 }
 
 /* ===== BUTTON ===== */
@@ -769,24 +857,24 @@ body {
 
 /* ===== CHART AREA ===== */
 .chart-area {
+  position: relative;
   padding: 2rem;
   border-radius: 12px;
   min-height: 400px;
+  z-index: 1; /* keep below filters */
 }
 
 .chart-box {
   height: 450px; /* important for Chart.js */
+  padding: 1rem;
 }
 
-/* Align button beside inputs */
-.filters .filter-fields {
-  display: flex;
-  align-items: flex-end;
-  gap: 1rem;              
-  flex-wrap: wrap;
+.chart-box canvas {
+  width: 100% !important;
+  height: 100% !important;
 }
 
-/* Dark-style inputs similar to Budget page */
+/* ===== INPUT DARK (shared) ===== */
 .input-dark {
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.1);
@@ -805,40 +893,19 @@ body {
   border-color: #9f6eff;
 }
 
-/* Chart area spacing */
-.chart-area {
-  margin-top: 1rem;
-}
-
-.chart-box {
-  height: 600px;
-   padding: 1rem;
-}
-.chart-box canvas {
-  width: 100% !important;
-  height: 100% !important;
-}
-
-/* Dark style for select dropdown */
-.input-dark select,
-.input-dark,
-select.input-dark {
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  color: #fff;
-  border-radius: 6px;
-  padding: 0.6rem 1rem;
-  width: 220px;
-  appearance: none;              
-  -webkit-appearance: none;
-  -moz-appearance: none;
-}
-
-/* Dropdown list itself (on open) */
 select.input-dark option {
-  background: #1a1033;         
+  background: #1a1033;
   color: #fff;
 }
+
+/* Align filters horizontally */
+.filters .filter-fields {
+  display: flex;
+  align-items: flex-end;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
 
 /* Add a custom arrow */
 select.input-dark {

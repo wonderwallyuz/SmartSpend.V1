@@ -1,49 +1,29 @@
 
 from openai import OpenAI
 
-client = OpenAI(api_key="api")
+client = OpenAI(api_key="api-key-placeholder")
 def categorize_expense(description: str, amount: float):
     prompt = f"""
-        You are an intelligent expense categorization assistant.
+You are an intelligent expense categorization assistant.
 
-Your task is to determine the most suitable expense category for a given description.
-If the expense does not clearly fit into the common categories below, intelligently CREATE a new category name that best represents it.
-
-Common categories include:
-[Food, Transportation, Utilities, Entertainment, Health, Shopping, Education, Bills]
+Your task is to determine the most accurate and contextually appropriate category for a given expense description.  
+If an expense does not fit into an existing or obvious category, intelligently CREATE a new category name that best represents its purpose or context of spending.
 
 Rules:
 - The description may be written in English, Filipino/Tagalog, or Cebuano/Bisaya.
-- Always infer meaning based on the most likely real-world spending context.
-- Do NOT output explanations — only the category name.
-- NEVER output "Other".
-- If a new category fits better than the ones above, create it (e.g., "Pet Care", "Travel", "Donations", "Maintenance", etc.).
-- Be consistent — similar descriptions should yield the same category.
-
-### Examples:
-- "lapis" → Education
-- "hotdog" → Food
-- "pamasahe" → Transportation
-- "pliti" (Cebuano for fare) → Transportation
-- "kuryente" → Utilities
-- "suga" (Cebuano for electricity/light) → Utilities
-- "gamot" → Health
-- "bayad sa tubig" → Bills
-- "bayad sa kuryente" → Bills
-- "bayad" (if referring to recurring obligations) → Bills
-- "netflix subscription" → Entertainment
-- "sapatos" → Shopping
-- "movie ticket" → Entertainment
-- "dog food" → Pet Care
-- "airplane ticket" → Travel
-- "church donation" → Donations
+- Infer meaning based on the most likely real-world spending scenario.
+- Output ONLY the category name — no explanations or reasoning.
+- NEVER output vague terms like "Other" or "Miscellaneous".
+- Be consistent — similar descriptions should always yield the same category name.
+- Use concise, natural, real-world category names (e.g., "Travel", "Maintenance", "Pet Care", "Donations", etc.).
 
 ### Task:
-Description: "{description}"
+Description: "{description}"  
 Amount: {amount}
 
 Answer with only the category name.
 """
+
 
     response = client.chat.completions.create(
         model="gpt-5-mini",

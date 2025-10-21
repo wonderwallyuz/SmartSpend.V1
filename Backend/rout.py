@@ -468,10 +468,12 @@ def submit_expense():
         INSERT INTO notifications (user_id, type, message)
         VALUES (?, ?, ?)
     """, (user_id, "info", notif_message))
+    
+    
     conn.commit()
 
     conn.close()
-
+    generate_notifications()
     flash("Expense added successfully!", "success")
     return redirect(url_for('index', total_spent=total_spent))
 
@@ -641,10 +643,10 @@ def submit_budget():
         INSERT INTO notifications (user_id, type, message)
         VALUES (?, ?, ?)
     """, (user_id, "success", notif_message))
+    
     conn.commit()
-
     conn.close()
-
+    generate_notifications()
     flash("Budget added successfully!", "success")
     return redirect(url_for('budget'))
 
@@ -716,6 +718,8 @@ def upload_csv():
         """, entries)
         conn.commit()
         conn.close()
+        
+        generate_notifications()
 
         msg = f"Uploaded {len(entries)} expenses successfully!"
         flash(msg, "success")
@@ -781,7 +785,6 @@ def get_spending_data():
     return jsonify(result)
 
 
-
 @app.route('/get_categories')
 def get_categories():
     if "user_id" not in session:
@@ -790,8 +793,7 @@ def get_categories():
     conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
     c.execute("""
-        SELECT DISTINCT category 
-        FROM expenses 
+        SELECT DISTINCT category FROM expenses
         WHERE user_id = ?
         ORDER BY category ASC
     """, (session["user_id"],))
@@ -799,7 +801,10 @@ def get_categories():
     conn.close()
 
     categories = [r[0] for r in rows]
+    categories.insert(0, "All")  # add "All" at the start
+
     return jsonify(categories)
+    
 
 
 if __name__ == "__main__":
