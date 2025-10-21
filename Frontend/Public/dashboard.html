@@ -40,117 +40,153 @@
 
 
     /* Notification button */
-    .notification {
-      position: relative;
-      margin-right: 25px;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-    .notification .material-symbols-outlined {
-      font-size: 28px;
-      color: #fff;
-      transition: all 0.3s ease;
-      text-shadow: 0 0 6px rgba(255, 0, 255, 0.3);
-    }
-    .notification:hover .material-symbols-outlined {
-      color: #ff77ff;
-      text-shadow: 0 0 12px rgba(255, 77, 255, 0.8);
-      transform: scale(1.1);
-    }
-    .notification .badge {
-      position: absolute;
-      top: -4px;
-      right: -6px;
-      background: linear-gradient(135deg, #ff4d4d, #ff8b8b);
-      color: #fff;
-      border-radius: 50%;
-      min-width: 18px;
-      height: 18px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 11px;
-      font-weight: 700;
-      box-shadow: 0 0 6px rgba(255, 77, 77, 0.8);
-    }
+.notification {
+  position: relative;
+  margin-right: 25px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
 
-    /* Notification panel */
-    .notif-panel {
-      position: absolute;
-      top: 70px;
-      right: 40px;
-      width: 320px;
-      background: rgba(90, 50, 150, 0.25);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      border-radius: 16px;
-      box-shadow: 0 4px 30px rgba(0, 0, 0, 0.4);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
-      color: #fff;
-      padding: 15px 18px;
-      display: none;
-      z-index: 999;
-      animation: fadeIn 0.3s ease;
-    }
-    .notif-panel.active {
-      display: block;
-    }
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(-8px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-    .notif-panel h4 {
-      font-size: 15px;
-      font-weight: 700;
-      margin-bottom: 12px;
-      padding-bottom: 6px;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.15);
-      color: #f0d9ff;
-      letter-spacing: 0.5px;
-    }
+.notification .material-symbols-outlined {
+  font-size: 28px;
+  color: #fff;
+  transition: all 0.3s ease;
+  text-shadow: 0 0 6px rgba(255, 0, 255, 0.3);
+}
 
-    /* Notification items */
-    .notif-item {
-      background: rgba(255, 255, 255, 0.1);
-      padding: 12px 14px;
-      border-radius: 10px;
-      margin-bottom: 10px;
-      font-size: 13px;
-      border-left: 3px solid transparent;
-      transition: all 0.3s ease;
-    }
-    .notif-item.alert {
-      border-left-color: #ff4d4d;
-      box-shadow: 0 0 10px rgba(255, 77, 77, 0.3);
-    }
-    .notif-item.tip {
-      border-left-color: #4da6ff;
-      box-shadow: 0 0 10px rgba(77, 166, 255, 0.3);
-    }
-    .notif-item.good {
-      border-left-color: #33cc99;
-      box-shadow: 0 0 10px rgba(51, 204, 153, 0.3);
-    }
-    .notif-item:hover {
-      transform: scale(1.02);
-      background: rgba(255, 255, 255, 0.15);
-    }
+.notification:hover .material-symbols-outlined {
+  color: #ff77ff;
+  text-shadow: 0 0 12px rgba(255, 77, 255, 0.8);
+  transform: scale(1.1);
+}
 
-    .notif-empty {
-      text-align: center;
-      font-size: 13px;
-      color: rgba(255,255,255,0.7);
-      padding: 10px;
-      animation: fadeIn 0.4s ease;
-    }
+.notification .badge {
+  position: absolute;
+  top: -4px;
+  right: -6px;
+  background: linear-gradient(135deg, #ff4d4d, #ff8b8b);
+  color: #fff;
+  border-radius: 50%;
+  min-width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 700;
+  box-shadow: 0 0 6px rgba(255, 77, 77, 0.8);
+}
 
-    .content-section {
-      display: flex;
-      flex-direction: column;
-      gap: 20px;
-    }
+/* Notification panel */
+.notif-panel {
+  position: absolute;
+  top: 70px;
+  right: 40px;
+  width: 320px;
+  background: rgba(90, 50, 150, 0.25);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  color: #fff;
+  padding: 15px 18px;
+  display: none;
+  z-index: 999;
+  animation: fadeIn 0.3s ease;
+}
+
+.notif-panel.active {
+  display: block;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.notif-panel h4 {
+  font-size: 15px;
+  font-weight: 700;
+  margin-bottom: 12px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+  color: #f0d9ff;
+  letter-spacing: 0.5px;
+}
+
+/* Notification items */
+.notif-item {
+  background: rgba(255, 255, 255, 0.1);
+  padding: 12px 14px;
+  border-radius: 10px;
+  margin-bottom: 10px;
+  font-size: 13px;
+  border-left: 3px solid transparent;
+  transition: all 0.3s ease;
+}
+
+.notif-item.alert {
+  border-left-color: #ff4d4d;
+  box-shadow: 0 0 10px rgba(255, 77, 77, 0.3);
+}
+
+.notif-item.tip {
+  border-left-color: #4da6ff;
+  box-shadow: 0 0 10px rgba(77, 166, 255, 0.3);
+}
+
+.notif-item.good {
+  border-left-color: #33cc99;
+  box-shadow: 0 0 10px rgba(51, 204, 153, 0.3);
+}
+
+.notif-item:hover {
+  transform: scale(1.02);
+  background: rgba(255, 255, 255, 0.15);
+}
+
+/* 🟣 Unread notifications (highlighted) */
+.notif-item.unread {
+  background: rgba(255, 255, 255, 0.18);
+  border-left-width: 4px;
+  transform: scale(1.02);
+  box-shadow: 0 0 12px rgba(255, 255, 255, 0.2);
+}
+
+/* ⚪ Read notifications (faded look) */
+.notif-item.read {
+  opacity: 0.6;
+  background: rgba(255, 255, 255, 0.08);
+  box-shadow: none;
+  border-left-color: rgba(255, 255, 255, 0.1);
+  transition: opacity 0.3s ease, background 0.3s ease;
+}
+
+/* Empty notification */
+.notif-empty {
+  text-align: center;
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.7);
+  padding: 10px;
+  animation: fadeIn 0.4s ease;
+}
+
+/* Layout helper */
+.content-section {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
  
   </style>
   <link rel="stylesheet" href="../Assets/notif.css" />
@@ -368,51 +404,77 @@
     </main>
   </div>
 
-  <!-- JS -->
-  <script>
-    const notifBtn = document.getElementById('notifBtn');
-    const notifPanel = document.getElementById('notifPanel');
-    const notifList = document.getElementById('notifList');
-    const notifCount = document.getElementById('notifCount');
+ <script>
+const notifBtn = document.getElementById('notifBtn');
+const notifPanel = document.getElementById('notifPanel');
+const notifList = document.getElementById('notifList');
+const notifCount = document.getElementById('notifCount');
 
-    const weeklyBudget = 2000;
-    const spent = 1650;
-    const remaining = weeklyBudget - spent;
-    const ratio = spent / weeklyBudget;
+// Fetch user notifications from Flask
+async function loadNotifications() {
+  try {
+    const response = await fetch('/get-notifications');
+    const data = await response.json();
 
-    const notifications = [];
-
-    if (ratio >= 0.8) {
-      notifications.push({ type: 'alert', text: 'You have spent over 80% of your weekly budget. Try to reduce spending.' });
-    } else if (ratio >= 0.5) {
-      notifications.push({ type: 'tip', text: 'You have used over 50% of your weekly budget. Plan your remaining days carefully.' });
-    } else {
-      notifications.push({ type: 'good', text: 'Good job! You are spending wisely within your budget.' });
+    if (!Array.isArray(data)) {
+      notifList.innerHTML = `<div class="notif-empty">${data.error || "Error loading notifications"}</div>`;
+      notifCount.style.display = 'none';
+      return;
     }
 
-    if (remaining < 300) {
-      notifications.push({ type: 'alert', text: 'Your remaining balance is below ₱300. Consider limiting expenses.' });
-    }
+    if (data.length > 0) {
+      notifList.innerHTML = data.map(n => `
+        <div class="notif-item ${n.type} ${n.is_read === 0 ? 'unread' : 'read'}" data-id="${n.id}">
+          <p>${n.message}</p>
+          <small>${new Date(n.created_at).toLocaleString()}</small>
+        </div>
+      `).join('');
 
-    if (notifications.length > 0) {
-      notifList.innerHTML = notifications.map(n => `<div class="notif-item ${n.type}">${n.text}</div>`).join('');
-      notifCount.textContent = notifications.length;
+      // Update badge count
+      const unreadCount = data.filter(n => n.is_read === 0).length;
+      notifCount.textContent = unreadCount;
+      notifCount.style.display = unreadCount === 0 ? 'none' : 'flex';
     } else {
       notifList.innerHTML = `<div class="notif-empty">No new notifications</div>`;
       notifCount.style.display = 'none';
     }
+  } catch (error) {
+    console.error("Error loading notifications:", error);
+  }
+}
 
-    notifBtn.addEventListener('click', () => {
-      notifPanel.classList.toggle('active');
-      notifCount.style.display = 'none';
-    });
+// Toggle notification panel
+notifBtn.addEventListener('click', () => {
+  notifPanel.classList.toggle('active');
+});
 
-    document.addEventListener('click', (e) => {
-      if (!notifPanel.contains(e.target) && !notifBtn.contains(e.target)) {
-        notifPanel.classList.remove('active');
-      }
-    });
-  </script>
+// Mark as read on click
+notifList.addEventListener('click', async (e) => {
+  const item = e.target.closest('.notif-item');
+  if (!item || item.classList.contains('read')) return; // Skip if already read
+
+  const notifId = item.dataset.id;
+
+  try {
+    await fetch(`/mark-read/${notifId}`, { method: 'POST' });
+    item.classList.remove('unread');
+    item.classList.add('read');
+  } catch (error) {
+    console.error("Error marking as read:", error);
+  }
+
+  // Update the badge count visually
+  const currentCount = parseInt(notifCount.textContent) || 0;
+  const newCount = Math.max(currentCount - 1, 0);
+  notifCount.textContent = newCount;
+  notifCount.style.display = newCount === 0 ? 'none' : 'flex';
+});
+
+// Auto-load notifications when page opens
+loadNotifications();
+</script>
+
+
 
   <script src="script.js"></script>
 </body>

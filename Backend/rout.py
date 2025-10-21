@@ -28,6 +28,167 @@ app = Flask(
 )
 app.secret_key = "secret123"
 
+# --- Helper: Database connection ---
+def get_db():
+    conn = sqlite3.connect(DB_PATH)
+    conn.row_factory = sqlite3.Row
+    return conn
+
+# --- Helper: Save notification ---
+def save_notification(user_id, notif_type, message):
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute("""
+        INSERT INTO notifications (user_id, type, message)
+        VALUES (?, ?, ?)
+    """, (user_id, notif_type, message))
+    conn.commit()
+    conn.close()
+
+# --- Helper: Fetch all user notifications ---
+def get_user_notifications(user_id):
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute("""
+        SELECT id, type, message, created_at, is_read
+        FROM notifications
+        WHERE user_id = ?
+        ORDER BY created_at DESC
+    """, (user_id,))
+    rows = cur.fetchall()
+    conn.close()
+    return [dict(row) for row in rows]
+
+# --- Helper: Total spent ---
+def get_total_spent(user_id):
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute("SELECT SUM(amount) FROM expenses WHERE user_id = ?", (user_id,))
+    total = cur.fetchone()[0] or 0
+    conn.close()
+    return total
+
+# --- Route: Generate and Save Notifications ---
+@app.route("/generate-notifications")
+def generate_notifications():
+    if "user_id" not in session:
+        return jsonify({"error": "Please log in first."}), 403
+
+    user_id = session["user_id"]
+    weekly_budget = 2000  # You can later make this user-specific
+    spent = get_total_spent(user_id)
+    remaining = weekly_budget - spent
+    ratio = spent / weekly_budget if weekly_budget > 0 else 0
+
+    generated = []
+
+    # --- Budget usage alerts ---
+    if ratio >= 0.9:
+        msg = "⚠️ You’ve spent over 90% of your weekly budget! Try holding off on non-essential purchases."
+        save_notification(user_id, "alert", msg)
+        generated.append(msg)
+    elif ratio >= 0.8:
+        msg = "🚨 80% of your budget is gone. Time to slow down your spending pace."
+        save_notification(user_id, "alert", msg)
+        generated.append(msg)
+    elif ratio >= 0.5:
+        msg = "💡 You’ve used over 50% of your weekly budget. Keep an eye on the next few days."
+        save_notification(user_id, "tip", msg)
+        generated.append(msg)
+    else:
+        msg = "✅ Great work! You’re staying well within your budget this week."
+        save_notification(user_id, "good", msg)
+        generated.append(msg)
+
+    # --- Low balance ---
+    if remaining < 300:
+        msg = "⚠️ Your remaining budget is below ₱300. Consider skipping small extras this week."
+        save_notification(user_id, "alert", msg)
+        generated.append(msg)
+    elif remaining < 100:
+        msg = "🚨 Critical: Your balance is under ₱100. Pause spending unless necessary!"
+        save_notification(user_id, "alert", msg)
+        generated.append(msg)
+
+    # --- High spending category detection (example) ---
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute("""
+        SELECT category, SUM(amount) as total
+        FROM expenses
+        WHERE user_id = ?
+        GROUP BY category
+        ORDER BY total DESC LIMIT 1
+    """, (user_id,))
+    top_category = cur.fetchone()
+    conn.close()
+
+    if top_category and top_category["total"] > weekly_budget * 0.4:
+        msg = f"📊 Most of your spending ({top_category['category']}) is taking over 40% of your budget!"
+        save_notification(user_id, "tip", msg)
+        generated.append(msg)
+
+    # --- Motivational or positive messages ---
+    if spent < weekly_budget * 0.3:
+        msg = "🌟 You’re doing amazing! Only a small portion of your budget used so far."
+        save_notification(user_id, "good", msg)
+        generated.append(msg)
+
+    # --- Expense trend detection ---
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute("""
+        SELECT date, SUM(amount)
+        FROM expenses
+        WHERE user_id = ?
+        GROUP BY date
+        ORDER BY date DESC LIMIT 3
+    """, (user_id,))
+    trends = cur.fetchall()
+    conn.close()
+
+    if len(trends) >= 3 and trends[0][1] > trends[1][1] and trends[1][1] > trends[2][1]:
+        msg = "📈 Your daily expenses are rising three days in a row. Watch your spending trend!"
+        save_notification(user_id, "alert", msg)
+        generated.append(msg)
+
+    # --- Reminders ---
+    msg = "📅 Don’t forget to log your daily expenses to keep SmartSpend insights accurate!"
+    save_notification(user_id, "tip", msg)
+    generated.append(msg)
+
+    return jsonify({"message": "Notifications generated", "details": generated})
+
+
+# --- Route: Fetch User Notifications ---
+@app.route("/get-notifications")
+def get_notifications():
+    if "user_id" not in session:
+        return jsonify({"error": "Not logged in"}), 403
+
+    user_id = session["user_id"]
+    notifs = get_user_notifications(user_id)
+    return jsonify(notifs)
+
+# --- Route: Mark Notification as Read ---
+@app.route("/mark-read/<int:notif_id>", methods=["POST"])
+def mark_read(notif_id):
+    if "user_id" not in session:
+        return jsonify({"error": "Not logged in"}), 403
+
+    user_id = session["user_id"]
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute("""
+        UPDATE notifications SET is_read = 1
+        WHERE id = ? AND user_id = ?
+    """, (notif_id, user_id))
+    conn.commit()
+    conn.close()
+    return jsonify({"message": "Notification marked as read"})
+
+
+
 @app.route('/')
 def landing():
     return render_template("landingpage.html")
@@ -278,6 +439,7 @@ def submit_expense():
         flash("Please log in first!", "warning")
         return redirect(url_for("login"))
 
+    user_id = session["user_id"]
     desc = request.form.get('desc')
     amount = float(request.form.get('amount'))
     date = request.form.get('date')
@@ -285,21 +447,30 @@ def submit_expense():
     # Categorize automatically
     category = categorize_expense(desc, amount)
 
-    # Save to database with user_id
     conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
+
+    # Save expense
     c.execute("""
         INSERT INTO expenses (user_id, description, amount, date, category)
         VALUES (?, ?, ?, ?, ?)
-    """, (session["user_id"], desc, amount, date, category))
+    """, (user_id, desc, amount, date, category))
     conn.commit()
-    
-    c.execute("SELECT SUM(amount) FROM expenses")
+
+    # Calculate total spent for user
+    c.execute("SELECT SUM(amount) FROM expenses WHERE user_id = ?", (user_id,))
     sum_row = c.fetchone()
     total_spent = sum_row[0] if sum_row and sum_row[0] is not None else 0.0
-    conn.close()
-    conn.close()
 
+    # --- Save notification ---
+    notif_message = f"🧾 You added a new expense of ₱{amount:.2f} for {category} ({desc})."
+    c.execute("""
+        INSERT INTO notifications (user_id, type, message)
+        VALUES (?, ?, ?)
+    """, (user_id, "info", notif_message))
+    conn.commit()
+
+    conn.close()
 
     flash("Expense added successfully!", "success")
     return redirect(url_for('index', total_spent=total_spent))
@@ -456,13 +627,25 @@ def submit_budget():
 
     conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
+
+    # Save budget
     c.execute(
         "INSERT INTO budgettbl (user_id, period, amount, date) VALUES (?, ?, ?, ?)",
         (user_id, period, new_amount, date)
     )
     conn.commit()
+
+    # --- Save notification ---
+    notif_message = f"💰 You set a new budget of ₱{new_amount:.2f} for {period}."
+    c.execute("""
+        INSERT INTO notifications (user_id, type, message)
+        VALUES (?, ?, ?)
+    """, (user_id, "success", notif_message))
+    conn.commit()
+
     conn.close()
 
+    flash("Budget added successfully!", "success")
     return redirect(url_for('budget'))
 
 
@@ -496,7 +679,6 @@ def upload_csv():
     with open(filepath, 'r', encoding='utf-8') as f:
         reader = csv.reader(f)
         for row in reader:
-            # Expecting: description, amount, date
             if len(row) >= 3:
                 desc = row[0].strip()
                 try:
@@ -506,9 +688,8 @@ def upload_csv():
 
                 date_str = row[2].strip()
                 if not date_str:
-                    continue  # skip empty dates
+                    continue
 
-                # ✅ Normalize and validate date
                 parsed_date = None
                 for fmt in ("%Y-%m-%d", "%m/%d/%Y", "%d/%m/%Y"):
                     try:
@@ -517,13 +698,13 @@ def upload_csv():
                     except ValueError:
                         continue
                 if not parsed_date:
-                    continue  # skip invalid dates
+                    continue
 
-                date = parsed_date.strftime("%Y-%m-%d")  # normalized format
-
-                # Auto categorize
+                date = parsed_date.strftime("%Y-%m-%d")
                 category = categorize_expense(desc, amount)
                 entries.append((session["user_id"], desc, amount, date, category))
+
+    user_id = session["user_id"]
 
     # ✅ Insert valid rows into DB
     if entries:
@@ -535,12 +716,20 @@ def upload_csv():
         """, entries)
         conn.commit()
         conn.close()
-        flash(f"Uploaded {len(entries)} expenses successfully!", "success")
-    else:
-        flash("No valid rows found in the file (check date format or empty fields).", "error")
 
-    os.remove(filepath)  # Clean up uploaded file
+        msg = f"Uploaded {len(entries)} expenses successfully!"
+        flash(msg, "success")
+        save_notification(user_id, "success", f"📂 {msg}")
+    else:
+        msg = "No valid rows found in the file (check date format or empty fields)."
+        flash(msg, "error")
+
+        # ✅ Save error notification
+        save_notification(user_id, "error", f"⚠️ {msg}")
+
+    os.remove(filepath)
     return redirect(url_for("index"))
+
 
 @app.route('/get_spending_data')
 def get_spending_data():
