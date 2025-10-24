@@ -85,24 +85,58 @@
   <div class="dashboard">
     <!-- Sidebar -->
     <aside class="sidebar" id="sidebar" aria-label="Main Navigation">
-      <div class="top-group">
-        <div class="logo">
-          <img src="{{ url_for('static', filename='logosmartspend.png') }}" alt="SmartSpend Logo">
-          <span class="logo-text"></span>
-        </div>
+  <div class="top-group">
+    <!-- Logo -->
+    <div class="logo">
+      <img src="{{ url_for('static', filename='logosmartspend.png') }}" alt="SmartSpend Logo">
+    </div>
 
-        <nav>
-          <ul class="menu" id="menu">
-            <li class="nav-item"><a href="/dashboard"><span class="material-symbols-outlined">dashboard</span><span class="label">Dashboard</span></a></li>
-            <li class="nav-item"><a href="/upload"><span class="material-symbols-outlined">upload</span><span class="label">Upload</span></a></li>
-            <li class="nav-item"><a href="/bugdet"><span class="material-symbols-outlined">account_balance_wallet</span><span class="label">Budget</span></a></li>
-            <li class="nav-item"><a href="/reports"><span class="material-symbols-outlined">assignment</span><span class="label">Reports</span></a></li>
-            <li class="nav-item"><a href="/logout"><span class="material-symbols-outlined">logout</span><span class="label">Logout</span></a></li>
-          </ul>
-        </nav>
-      </div>
-    </aside>
+<!-- Navigation -->
+<nav>
+  <ul class="menu" id="menu">
+    <!-- Dashboard -->
+    <li class="menu-item {% if request.path == url_for('dashboard') %}active{% endif %}" data-name="dashboard">
+      <a href="{{ url_for('dashboard') }}">
+        <span class="material-symbols-outlined">dashboard</span>
+        <span class="label">Dashboard</span>
+      </a>
+    </li>
 
+    <!-- Upload -->
+    <li class="menu-item {% if request.path == url_for('index') %}active{% endif %}" data-name="upload">
+      <a href="{{ url_for('index') }}">
+        <span class="material-symbols-outlined">upload</span>
+        <span class="label">Upload</span>
+      </a>
+    </li>
+
+    <!-- Budget -->
+    <li class="menu-item {% if request.path == url_for('budget') %}active{% endif %}" data-name="budget">
+      <a href="{{ url_for('budget') }}">
+        <span class="material-symbols-outlined">account_balance_wallet</span>
+        <span class="label">Budget</span>
+      </a>
+    </li>
+
+    <!-- Reports -->
+    <li class="menu-item {% if request.path == url_for('reports') %}active{% endif %}" data-name="reports">
+      <a href="{{ url_for('reports') }}">
+        <span class="material-symbols-outlined">assignment</span>
+        <span class="label">Reports</span>
+      </a>
+    </li>
+
+    <!-- Logout -->
+    <li class="menu-item" data-name="logout">
+      <a href="{{ url_for('logout') }}">
+        <span class="material-symbols-outlined">logout</span>
+        <span class="label">Logout</span>
+      </a>
+    </li>
+  </ul>
+</nav>
+
+</aside>
     <!-- Main content -->
     <main class="main">
       <header class="header">
@@ -153,7 +187,7 @@
       
       <div class="form-group">
         <label for="username">Username</label>
-        <input type="text" id="username" value="{{username}}">
+        <input type="text" id="username" value="{{ username }}">
       </div>
 
       <div class="form-group">

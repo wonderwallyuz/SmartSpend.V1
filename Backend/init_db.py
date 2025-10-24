@@ -55,6 +55,16 @@ CREATE TABLE IF NOT EXISTS profile (
 
 c.execute("SELECT COUNT(*) FROM profile")
 count = c.fetchone()[0]
+c.execute("""
+CREATE TABLE IF NOT EXISTS notifications (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL,
+    type TEXT NOT NULL,          
+    message TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    is_read INTEGER DEFAULT 0
+)
+""")
 
 c = conn.cursor()
 c.execute("DELETE FROM expenses WHERE date IS NULL OR TRIM(date) = ''")
