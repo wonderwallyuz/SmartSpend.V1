@@ -47,13 +47,13 @@ CREATE TABLE IF NOT EXISTS profile (
     user_id INTEGER NOT NULL,
     full_name TEXT NOT NULL,
     username TEXT NOT NULL UNIQUE,
-    email TEXT NOT NULL UNIQUE,
     role TEXT,
     bio TEXT,
     photo TEXT,
     FOREIGN KEY (user_id) REFERENCES users(id)
 )
 """)
+
 
 c.execute("SELECT COUNT(*) FROM profile")
 count = c.fetchone()[0]

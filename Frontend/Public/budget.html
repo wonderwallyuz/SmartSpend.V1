@@ -292,7 +292,62 @@
 
   <!-- Existing site script (keep it) -->
   <script src="script.js"></script>
+<script>
+    // Sidebar toggle
+    const sidebar = document.getElementById('sidebar');
+    const toggleBtn = document.getElementById('toggleSidebarBtn');
+    const collapseBtn = document.getElementById('collapseBtn');
 
+    toggleBtn.addEventListener('click', () => sidebar.classList.toggle('collapsed'));
+    collapseBtn.addEventListener('click', () => sidebar.classList.toggle('collapsed'));
+
+    // Profile menu toggle
+    const userProfile = document.getElementById('userProfile');
+    const profileMenu = document.getElementById('profileMenu');
+
+    userProfile.addEventListener('click', () => {
+      const isHidden = profileMenu.getAttribute('aria-hidden') === 'true';
+      profileMenu.setAttribute('aria-hidden', !isHidden);
+      profileMenu.style.display = isHidden ? 'block' : 'none';
+    });
+
+    // Show/Hide Logout section
+    function showSection(sectionId) {
+      document.querySelectorAll('.section').forEach(sec => sec.style.display = 'none');
+      document.getElementById(sectionId).style.display = 'flex';
+    }
+
+    function hideLogout() {
+      document.getElementById('logoutSection').style.display = 'none';
+    }
+
+    /* ✅ Live Profile Sync (no UI change) */
+    function syncProfileData() {
+      const savedProfile = localStorage.getItem("user_profile");
+      if (savedProfile) {
+        const profile = JSON.parse(savedProfile);
+        const name = document.getElementById("userName");
+        const role = document.getElementById("userRole");
+        const avatar = document.getElementById("userAvatar");
+
+        if (name) name.textContent = profile.full_name || "User";
+        if (role) role.textContent = profile.role || "Role";
+        if (avatar) {
+          if (profile.photo && profile.photo !== "") {
+            avatar.innerHTML = `<img src="${profile.photo}" alt="User" style="width:35px;height:35px;border-radius:50%;">`;
+          } else {
+            avatar.innerHTML = '<i class="fas fa-user"></i>';
+          }
+        }
+      }
+    }
+
+    document.addEventListener("DOMContentLoaded", syncProfileData);
+
+    window.addEventListener("storage", (e) => {
+      if (e.key === "user_profile") syncProfileData();
+    });
+  </script>
   <!-- Budget-specific script (safe, wrapped and defensive) -->
   <script>
   (function () {

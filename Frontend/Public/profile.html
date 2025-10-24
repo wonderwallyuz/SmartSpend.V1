@@ -137,51 +137,47 @@
         </div>
       </header>
 
-      <!-- Profile Section -->
       <section class="profile-card glass animate-fade">
-        <div class="profile-content">
-          <!-- Left: Profile Picture -->
-          <div class="profile-photo">
-            <img src="{{ url_for('static', filename='uploads/avatar.png') }}" id="profilePic" alt="Profile Picture">
-            <input type="file" id="photoInput" accept="image/*" style="display:none;">
-            <button type="button" class="btn small" id="changePhotoBtn"><i class="fas fa-camera"></i> Change Photo</button>
-          </div>
+  <div class="profile-content">
+    <!-- Left: Profile Picture -->
+    <div class="profile-photo">
+      <img src="{{ url_for('static', filename='uploads/avatar.png') }}" id="profilePic" alt="Profile Picture">
+      <input type="file" id="photoInput" accept="image/*" style="display:none;">
+      <button type="button" class="btn small" id="changePhotoBtn">
+        <i class="fas fa-camera"></i> Change Photo
+      </button>
+    </div>
 
-          <!-- Right: Form -->
-          <form class="profile-form" id="profileForm">
-            <div class="form-group">
-              <label for="fullname">Full Name</label>
-              <input type="text" id="fullname" value="Eva Ombao" />
-            </div>
+    <!-- Right: Form -->
+    <form class="profile-form" id="profileForm">
+      <div class="form-group">
+        <label for="fullname">Full Name</label>
+        <input type="text" id="fullname" value="Eva Ombao" />
+      </div>
 
-            <div class="form-group">
-              <label for="username">Username</label>
-              <input type="text" id="username" value="{{username}}">
-            </div>
+      <div class="form-group">
+        <label for="username">Username</label>
+        <input type="text" id="username" value="{{username}}">
+      </div>
 
-            <div class="form-group">
-              <label for="email">Email</label>
-              <input type="email" id="email" value="{{email}}" >
-            </div>
+      <div class="form-group">
+        <label for="role">Role</label>
+        <input type="text" id="role" />
+      </div>
 
-            <div class="form-group">
-              <label for="role">Role</label>
-              <input type="text" id="role" />
-            </div>
+      <div class="form-group">
+        <label for="bio">Bio</label>
+        <textarea id="bio"></textarea>
+      </div>
 
-            <div class="form-group">
-              <label for="bio">Bio</label>
-              <textarea id="bio"></textarea>
-            </div>
-
-            <div class="actions">
-              <button type="submit" class="btn primary">
-                <i class="fas fa-save"></i> Save Changes
-              </button>
-            </div>
-          </form>
-        </div>
-      </section>
+      <div class="actions">
+        <button type="submit" class="btn primary">
+          <i class="fas fa-save"></i> Save Changes
+        </button>
+      </div>
+    </form>
+  </div>
+</section>
     </main>
   </div>
 
@@ -197,7 +193,9 @@ window.addEventListener("DOMContentLoaded", () => {
   const userProfile = document.getElementById("userProfile");
   const profileMenu = document.getElementById("profileMenu");
 
-  // Show toast messages
+  let selectedPhotoFile = null; // store temporarily until "Save Changes"
+
+  // --- Toast ---
   function showToast(message, success = true) {
     toast.textContent = message;
     toast.style.backgroundColor = success ? "#4CAF50" : "#D32F2F";
@@ -205,24 +203,24 @@ window.addEventListener("DOMContentLoaded", () => {
     setTimeout(() => toast.className = toast.className.replace("show", ""), 3000);
   }
 
-  // Update top header user info
- function updateUserHeader(name, role, photo) {
-  const userName = document.getElementById("userName");
-  const userRole = document.getElementById("userRole");
-  const userAvatar = document.getElementById("userAvatar");
-  if (userName) userName.textContent = name || "User";
-  if (userRole) userRole.textContent = role || "Role";
-  if (userAvatar && photo) userAvatar.innerHTML = `<img src="${photo}" alt="User" style="width:35px;height:35px;border-radius:50%;">`;
-}
+  // --- Update header info ---
+  function updateUserHeader(name, role, photo) {
+    const userName = document.getElementById("userName");
+    const userRole = document.getElementById("userRole");
+    const userAvatar = document.getElementById("userAvatar");
+    if (userName) userName.textContent = name || "User";
+    if (userRole) userRole.textContent = role || "Role";
+    if (userAvatar && photo)
+      userAvatar.innerHTML = `<img src="${photo}" alt="User" style="width:35px;height:35px;border-radius:50%;">`;
+  }
 
-  // Load profile from localStorage
+  // --- Load profile from localStorage ---
   function loadProfile() {
     const stored = localStorage.getItem("user_profile");
     if (stored) {
       const profile = JSON.parse(stored);
       document.getElementById("fullname").value = profile.full_name || "";
       document.getElementById("username").value = profile.username || "";
-      document.getElementById("email").value = profile.email || "";
       document.getElementById("role").value = profile.role || "";
       document.getElementById("bio").value = profile.bio || "";
       profilePic.src = profile.photo || "images/avatar.png";
@@ -230,104 +228,97 @@ window.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  // Click "Change Photo" to open file explorer
+  // --- Change Photo (Preview only) ---
   changeBtn.addEventListener("click", () => photoInput.click());
 
-  // Handle file selection and upload
-  photoInput.addEventListener("change", async (e) => {
+  photoInput.addEventListener("change", (e) => {
     const file = e.target.files[0];
     if (!file) return;
+    selectedPhotoFile = file; // store for later upload
 
+    // Preview only
     const reader = new FileReader();
     reader.onload = () => { profilePic.src = reader.result; };
     reader.readAsDataURL(file);
+  });
+
+  // --- Save Changes ---
+  profileForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
 
     const formData = new FormData();
-    formData.append("photo", file);
+    formData.append("full_name", document.getElementById("fullname").value);
+    formData.append("username", document.getElementById("username").value);
+    formData.append("role", document.getElementById("role").value);
+    formData.append("bio", document.getElementById("bio").value);
+
+    if (selectedPhotoFile) {
+      formData.append("photo", selectedPhotoFile);
+    }
 
     try {
-      const response = await fetch("/api/profile/upload_photo", { method: "POST", body: formData });
-      const result = await response.json();
-      if (response.ok) {
-        const serverPhotoURL = result.photo + "?t=" + new Date().getTime();
-        profilePic.src = serverPhotoURL;
+      const response = await fetch("/api/profile/update", {
+        method: "POST",
+        body: formData
+      });
 
-        const stored = JSON.parse(localStorage.getItem("user_profile")) || {};
-        stored.photo = serverPhotoURL;
-        localStorage.setItem("user_profile", JSON.stringify(stored));
+      const text = await response.text();
+      console.log("📩 Raw response:", text);
 
-        showToast("Photo uploaded successfully ✅");
-      } else {
-        showToast("❌ " + result.error, false);
+      let result;
+      try {
+        result = JSON.parse(text);
+      } catch (err) {
+        console.error("⚠️ JSON parse failed:", err);
+        showToast("⚠️ Invalid server response", false);
+        return;
       }
+
+      if (response.ok && result.success) {
+        const newPhoto = result.photo_url
+          ? result.photo_url + "?t=" + new Date().getTime()
+          : profilePic.src;
+
+        const updatedProfile = {
+          full_name: document.getElementById("fullname").value,
+          username: document.getElementById("username").value,
+          role: document.getElementById("role").value,
+          bio: document.getElementById("bio").value,
+          photo: newPhoto
+        };
+
+        localStorage.setItem("user_profile", JSON.stringify(updatedProfile));
+        updateUserHeader(updatedProfile.full_name, updatedProfile.role, updatedProfile.photo);
+        profilePic.src = newPhoto;
+        selectedPhotoFile = null;
+
+        showToast(result.message || "✅ Profile updated successfully");
+      } else {
+        showToast(result.error || "⚠️ Failed to save profile", false);
+      }
+
     } catch (err) {
-      console.error(err);
-      showToast("⚠️ Upload failed", false);
+      console.error("🔥 Fetch failed:", err);
+      showToast("⚠️ Failed to save profile", false);
     }
   });
 
-  profileForm.addEventListener("submit", async (e) => {
-  e.preventDefault();
-
-  const data = {
-    full_name: document.getElementById("fullname").value,
-    username: document.getElementById("username").value,
-    email: document.getElementById("email").value,
-    role: document.getElementById("role").value,
-    bio: document.getElementById("bio").value,
-    photo: profilePic.src
-  };
-
-  try {
-    const response = await fetch("/api/profile/update", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data)
-    });
-
-    // 🧠 Check raw text first, in case it's not valid JSON
-    const text = await response.text();
-    console.log("📩 Raw response:", text);
-
-    let result;
-    try {
-      result = JSON.parse(text);
-    } catch (err) {
-      console.error("⚠️ Could not parse JSON:", err);
-      showToast("⚠️ Server returned invalid response", false);
-      return;
-    }
-
-    console.log("✅ Parsed JSON:", result);
-
-    if (response.ok && result.success) {
-      showToast(result.message || "✅ Profile saved successfully", true);
-      localStorage.setItem("user_profile", JSON.stringify(data));
-      updateUserHeader(data.full_name, data.role, data.photo);
-    } else {
-      showToast(result.error || "⚠️ Failed to save profile", false);
-    }
-
-  } catch (err) {
-    console.error("🔥 Fetch failed:", err);
-    showToast("⚠️ Failed to save profile", false);
-  }
-});
-
-
-  // Dropdown toggle
+  // --- Dropdown toggle ---
   userProfile.addEventListener("click", e => {
     e.stopPropagation();
     profileMenu.classList.toggle("show");
   });
+
   document.addEventListener("click", e => {
-    if (!profileMenu.contains(e.target) && !userProfile.contains(e.target)) profileMenu.classList.remove("show");
+    if (!profileMenu.contains(e.target) && !userProfile.contains(e.target))
+      profileMenu.classList.remove("show");
   });
 
-  // Load profile on page load
+  // --- Initialize ---
   loadProfile();
 });
 </script>
+
 
   <!-- JS -->
   <script src="script.js"></script>
