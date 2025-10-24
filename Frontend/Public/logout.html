@@ -5,18 +5,17 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Logout - SmartSpend</title>
 
-  <!-- CSS -->
- 
-<link rel="stylesheet" href="../Assets/style.css">
-   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-   <link rel="icon" href="../Assets/iconshit.png">
+  <!-- ✅ CSS -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <link rel="icon" href="{{ url_for('static', filename='iconshit.png') }}">
   <script src="{{ url_for('static', filename='script.js') }}"></script>
 
-  <!-- Fonts & Icons -->
+  <!-- ✅ Fonts & Icons -->
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" />
-  <script src="https://kit.fontawesome.com/2d9a2c9d4d.js" crossorigin="anonymous"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
+
 <body>
   <div class="background"></div>
 
@@ -106,8 +105,11 @@
       
       <section id="logoutSection" class="section">
         <div class="logout-card">
-          <div class="logout-icon">
-            <i class="fas fa-power-off"></i>
+          <div class="logout-icon" id="logoutAvatar">
+             <img src="{{ url_for('static', filename='uploads/avatar.png') }}" 
+     alt="User Avatar"
+     style="width:35px; height:35px; object-fit:cover;">
+
           </div>
           <h1>Ready to log out?</h1>
           <p class="subtitle">You are about to log out of <strong>SmartSpend</strong>. Are you sure you want to continue?</p>
@@ -150,25 +152,39 @@
     }
 
     /* ✅ Live Profile Sync (no UI change) */
-    function syncProfileData() {
-      const savedProfile = localStorage.getItem("user_profile");
-      if (savedProfile) {
-        const profile = JSON.parse(savedProfile);
-        const name = document.getElementById("userName");
-        const role = document.getElementById("userRole");
-        const avatar = document.getElementById("userAvatar");
+   /* ✅ Live Profile Sync (updates header + logout section) */
+function syncProfileData() {
+  const savedProfile = localStorage.getItem("user_profile");
+  if (savedProfile) {
+    const profile = JSON.parse(savedProfile);
+    const name = document.getElementById("userName");
+    const role = document.getElementById("userRole");
+    const avatar = document.getElementById("userAvatar");
+    const logoutAvatar = document.getElementById("logoutAvatar");
 
-        if (name) name.textContent = profile.full_name || "User";
-        if (role) role.textContent = profile.role || "Role";
-        if (avatar) {
-          if (profile.photo && profile.photo !== "") {
-            avatar.innerHTML = `<img src="${profile.photo}" alt="User" style="width:35px;height:35px;border-radius:50%;">`;
-          } else {
-            avatar.innerHTML = '<i class="fas fa-user"></i>';
-          }
-        }
+    if (name) name.textContent = profile.full_name || "User";
+    if (role) role.textContent = profile.role || "Role";
+
+    // Header avatar
+    if (avatar) {
+      if (profile.photo && profile.photo.trim() !== "") {
+        avatar.innerHTML = `<img src="${profile.photo}" alt="User" style="width:35px;height:35px;border-radius:50%;object-fit:cover;">`;
+      } else {
+        avatar.innerHTML = '<i class="fas fa-user"></i>';
       }
     }
+
+    // Logout section avatar
+    if (logoutAvatar) {
+      if (profile.photo && profile.photo.trim() !== "") {
+        logoutAvatar.innerHTML = `<img src="${profile.photo}" alt="User Avatar" style="width:35px;height:35px;border-radius:50%;object-fit:cover;">`;
+      } else {
+        logoutAvatar.innerHTML = '<i class="fas fa-user fa-2x"></i>';
+      }
+    }
+  }
+}
+
 
     document.addEventListener("DOMContentLoaded", syncProfileData);
 
@@ -176,5 +192,6 @@
       if (e.key === "user_profile") syncProfileData();
     });
   </script>
+  
 </body>
 </html>

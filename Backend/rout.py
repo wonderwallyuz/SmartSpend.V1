@@ -573,54 +573,89 @@ def get_profiles():
         return jsonify({"error": str(e)}), 500
 
 @app.route("/api/profile/update", methods=["POST"])
-def insert_profile():
+def update_profile():
     try:
-        data = request.get_json() if request.is_json else request.form
-        print("📩 Received data:", data)
+        user_id = session.get("user_id") or request.form.get("user_id")
+        if not user_id:
+            return jsonify({"success": False, "error": "Missing user_id"}), 400
 
-        full_name = data.get("full_name", "")
-        username = data.get("username", "")
-        email = data.get("email", "")
-        role = data.get("role", "")
-        bio = data.get("bio", "")
-        photo = data.get("photo", "")
+        # ✅ Collect all form data
+        full_name = request.form.get("full_name", "")
+        username = request.form.get("username", "")
+        role = request.form.get("role", "")
+        bio = request.form.get("bio", "")
+        photo_file = request.files.get("photo")
 
-        print("✅ Parsed:", full_name, username, email, role, bio, photo)
+        # ✅ Handle photo upload (optional)
+        photo_url = None
+        if photo_file and allowed_file(photo_file.filename):
+            filename = secure_filename(photo_file.filename)
+            filepath = os.path.join(app.config["UPLOAD_FOLDER"], filename)
+            photo_file.save(filepath)
+            photo_url = url_for("static", filename=f"uploads/{filename}")
 
-        conn = get_db_connection()
+        # ✅ Use timeout to avoid “database locked” error
+        conn = sqlite3.connect(DB_PATH, timeout=10)
+        conn.row_factory = sqlite3.Row
+        cursor = conn.cursor()
 
-        existing = conn.execute("SELECT * FROM profile WHERE username=?", (username,)).fetchone()
-        print("🧠 Existing profile?", bool(existing))
+        # ✅ Enable WAL mode for better concurrency
+        cursor.execute("PRAGMA journal_mode=WAL;")
+
+        existing = cursor.execute(
+            "SELECT * FROM profile WHERE user_id=?", (user_id,)
+        ).fetchone()
 
         if existing:
-            conn.execute("""
+            # ✅ Update existing profile
+            cursor.execute("""
                 UPDATE profile
-                SET full_name=?, email=?, role=?, bio=?, photo=?
-                WHERE username=?
-            """, (full_name, email, role, bio, photo, username))
-            print("🔁 Updated existing profile")
+                SET full_name=?, username=?, role=?, bio=?, photo=COALESCE(?, photo)
+                WHERE user_id=?
+            """, (full_name, username, role, bio, photo_url, user_id))
         else:
-            conn.execute("""
-                INSERT INTO profile (full_name, username, email, role, bio, photo)
+            # ✅ Insert new profile
+            cursor.execute("""
+                INSERT INTO profile (user_id, full_name, username, role, bio, photo)
                 VALUES (?, ?, ?, ?, ?, ?)
-            """, (full_name, username, email, role, bio, photo))
-            print("🆕 Inserted new profile")
+            """, (user_id, full_name, username, role, bio, photo_url))
 
         conn.commit()
-        conn.close()
 
-        response = {"success": True, "message": "✅ Profile saved successfully"}
-        print("📤 Sending:", response)
-        return jsonify(response)
+        # ✅ Fetch updated data
+        updated_profile = cursor.execute("""
+            SELECT id, user_id, full_name, username, role, bio, photo
+            FROM profile WHERE user_id=?
+        """, (user_id,)).fetchone()
 
-    except sqlite3.IntegrityError as e:
-        print("❌ IntegrityError:", e)
-        return jsonify({"success": False, "error": f"❌ Username or Email already exists: {e}"}), 400
+        return jsonify({
+            "success": True,
+            "message": "✅ Profile updated successfully",
+            "profile": dict(updated_profile) if updated_profile else {},
+            "photo_url": photo_url
+        })
+
+    except sqlite3.OperationalError as e:
+        if "locked" in str(e).lower():
+            return jsonify({"success": False, "error": "Database is locked. Try again."}), 500
+        raise
     except Exception as e:
         import traceback
-        print("🔥 Error while saving profile:", e)
         traceback.print_exc()
-        return jsonify({"success": False, "error": f"❌ Failed to save profile: {e}"}), 500
+        return jsonify({
+            "success": False,
+            "error": f"❌ Failed to update profile: {e}"
+        }), 500
+    finally:
+        try:
+            conn.close()
+        except:
+            pass
+
+
+
+
+
 
 
 
