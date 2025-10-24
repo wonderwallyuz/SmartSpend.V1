@@ -150,11 +150,7 @@
 
     <!-- Right: Form -->
     <form class="profile-form" id="profileForm">
-      <div class="form-group">
-        <label for="fullname">Full Name</label>
-        <input type="text" id="fullname" value="Eva Ombao" />
-      </div>
-
+      
       <div class="form-group">
         <label for="username">Username</label>
         <input type="text" id="username" value="{{username}}">
@@ -219,7 +215,6 @@ window.addEventListener("DOMContentLoaded", () => {
     const stored = localStorage.getItem("user_profile");
     if (stored) {
       const profile = JSON.parse(stored);
-      document.getElementById("fullname").value = profile.full_name || "";
       document.getElementById("username").value = profile.username || "";
       document.getElementById("role").value = profile.role || "";
       document.getElementById("bio").value = profile.bio || "";
@@ -247,7 +242,6 @@ window.addEventListener("DOMContentLoaded", () => {
     e.preventDefault();
 
     const formData = new FormData();
-    formData.append("full_name", document.getElementById("fullname").value);
     formData.append("username", document.getElementById("username").value);
     formData.append("role", document.getElementById("role").value);
     formData.append("bio", document.getElementById("bio").value);
@@ -280,7 +274,6 @@ window.addEventListener("DOMContentLoaded", () => {
           : profilePic.src;
 
         const updatedProfile = {
-          full_name: document.getElementById("fullname").value,
           username: document.getElementById("username").value,
           role: document.getElementById("role").value,
           bio: document.getElementById("bio").value,

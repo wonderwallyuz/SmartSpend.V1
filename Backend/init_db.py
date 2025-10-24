@@ -45,8 +45,6 @@ c.execute("""
 CREATE TABLE IF NOT EXISTS profile (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     user_id INTEGER NOT NULL,
-    full_name TEXT NOT NULL,
-    username TEXT NOT NULL UNIQUE,
     role TEXT,
     bio TEXT,
     photo TEXT,
