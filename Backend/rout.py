@@ -835,12 +835,20 @@ def settings():
         flash("Please log in to access settings.", "error")
         return redirect(url_for('login'))
 
-    # You can also fetch user info to pre-fill email, etc.
-    user_email = None
     user_id = session["user_id"]
 
-   
-    return render_template('settings.html')
+    conn = sqlite3.connect(DB_PATH)
+    c = conn.cursor()
+
+    # ✅ Fetch email for the logged-in user
+    c.execute("SELECT email FROM users WHERE id = ?", (user_id,))
+    result = c.fetchone()
+    conn.close()
+
+    user_email = result[0] if result else ""
+
+    # ✅ Pass email to template
+    return render_template('settings.html', email=user_email)
 
 
 @app.route('/update_password', methods=['POST'])
