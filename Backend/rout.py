@@ -1,11 +1,12 @@
 import os
 import sqlite3
-from flask import Flask, render_template, request, flash, session, json
+from flask import Flask, render_template, request, flash, session, json, jsonify
 from flask import redirect, url_for
 from ML.MLmodel import categorize_expense
 from flask import session
 from flask import session, redirect, url_for, flash
 import csv
+from datetime import datetime
 from werkzeug.utils import secure_filename 
 from ML.MLmodel import categorize_expense, generate_smartspend_insights
 from flask import Flask, render_template, jsonify, request, send_from_directory, redirect, url_for
@@ -30,9 +31,231 @@ app = Flask(
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 app.secret_key = "secret123"
 
+# --- Helper: Database connection ---
+def get_db():
+    conn = sqlite3.connect(DB_PATH)
+    conn.row_factory = sqlite3.Row
+    return conn
 
-# ✅ Ensure uploads directory exists
-os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+# --- Helper: Save notification ---
+def save_notification(user_id, notif_type, message):
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute("""
+        INSERT INTO notifications (user_id, type, message)
+        VALUES (?, ?, ?)
+    """, (user_id, notif_type, message))
+    conn.commit()
+    conn.close()
+
+# --- Helper: Fetch all user notifications ---
+# --- Helper: Fetch all user notifications ---
+def get_user_notifications(user_id):
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute("""
+        SELECT id, type, message, created_at, is_read
+        FROM notifications
+        WHERE user_id = ?
+        ORDER BY created_at DESC
+    """, (user_id,))
+    rows = cur.fetchall()
+    conn.close()
+    return [dict(row) for row in rows]
+
+
+# --- Helper: Total spent ---
+def get_total_spent(user_id):
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute("SELECT SUM(amount) FROM expenses WHERE user_id = ?", (user_id,))
+    total = cur.fetchone()[0] or 0
+    conn.close()
+    return total
+
+
+# --- Helper: Save notification (with duplicate check) ---
+def save_notification(user_id, notif_type, message):
+    conn = get_db()
+    cur = conn.cursor()
+
+    # ✅ Prevent duplicates (same message created today)
+    cur.execute("""
+        SELECT id FROM notifications
+        WHERE user_id = ? AND message = ? 
+          AND DATE(created_at) = DATE('now')
+    """, (user_id, message))
+    existing = cur.fetchone()
+
+    if existing:
+        conn.close()
+        return  # Skip saving duplicate
+
+    cur.execute("""
+        INSERT INTO notifications (user_id, type, message, is_read, created_at)
+        VALUES (?, ?, ?, 0, datetime('now'))
+    """, (user_id, notif_type, message))
+    conn.commit()
+    conn.close()
+
+
+# --- Route: Generate and Save Notifications ---
+@app.route("/generate-notifications")
+def generate_notifications():
+    if "user_id" not in session:
+        return jsonify({"error": "Please log in first."}), 403
+
+    user_id = session["user_id"]
+
+    # --- Fetch latest user budget ---
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute("""
+        SELECT period, amount
+        FROM budgettbl
+        WHERE user_id = ?
+        ORDER BY id DESC
+        LIMIT 1
+    """, (user_id,))
+    budget_row = cur.fetchone()
+
+    if not budget_row:
+        conn.close()
+        return jsonify({"error": "No budget set yet"}), 400
+
+    period = budget_row["period"]
+    budget_amount = float(budget_row["amount"])
+    conn.close()
+
+    # --- Get total expenses ---
+    spent = get_total_spent(user_id)
+    remaining = budget_amount - spent
+    ratio = spent / budget_amount if budget_amount > 0 else 0
+
+    generated = []
+
+    # --- Budget usage alerts ---
+    if ratio >= 0.9:
+        msg = "⚠️ You’ve spent over 90% of your budget! Try holding off on non-essential purchases."
+        save_notification(user_id, "alert", msg)
+        generated.append(msg)
+    elif ratio >= 0.8:
+        msg = "🚨 80% of your budget is gone. Time to slow down your spending pace."
+        save_notification(user_id, "alert", msg)
+        generated.append(msg)
+    elif ratio >= 0.5:
+        msg = "💡 You’ve used over 50% of your budget. Keep an eye on the next few days."
+        save_notification(user_id, "tip", msg)
+        generated.append(msg)
+    else:
+        msg = "✅ Great work! You’re staying well within your budget!"
+        save_notification(user_id, "good", msg)
+        generated.append(msg)
+
+    # --- Low balance alerts ---
+    if remaining < 100:
+        msg = "🚨 Critical: Your balance is under ₱100. Pause spending unless necessary!"
+        save_notification(user_id, "alert", msg)
+        generated.append(msg)
+    elif remaining < 300:
+        msg = "⚠️ Your remaining budget is below ₱300. Consider skipping small extras this week."
+        save_notification(user_id, "alert", msg)
+        generated.append(msg)
+
+    # --- High spending category detection ---
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute("""
+        SELECT category, SUM(amount) AS total
+        FROM expenses
+        WHERE user_id = ?
+        GROUP BY category
+        ORDER BY total DESC LIMIT 1
+    """, (user_id,))
+    top_category = cur.fetchone()
+    conn.close()
+
+    if top_category and top_category["total"] > budget_amount * 0.4:
+        msg = f"📊 Most of your spending ({top_category['category']}) is taking over 40% of your budget!"
+        save_notification(user_id, "tip", msg)
+        generated.append(msg)
+
+    # --- Motivational message ---
+    if spent < budget_amount * 0.3:
+        msg = "🌟 You’re doing amazing! Only a small portion of your budget used so far."
+        save_notification(user_id, "good", msg)
+        generated.append(msg)
+
+    # --- Expense trend detection ---
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute("""
+        SELECT date, SUM(amount)
+        FROM expenses
+        WHERE user_id = ?
+        GROUP BY date
+        ORDER BY date DESC LIMIT 3
+    """, (user_id,))
+    trends = cur.fetchall()
+    conn.close()
+
+    if len(trends) >= 3 and trends[0][1] > trends[1][1] and trends[1][1] > trends[2][1]:
+        msg = "📈 Your daily expenses are rising three days in a row. Watch your spending trend!"
+        save_notification(user_id, "alert", msg)
+        generated.append(msg)
+
+    # --- Daily reminder (only once per day) ---
+    today = datetime.now().date()
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute("""
+        SELECT id FROM notifications
+        WHERE user_id = ? AND message LIKE '📅 Don%log%' AND DATE(created_at) = ?
+    """, (user_id, today))
+    reminder_exists = cur.fetchone()
+    conn.close()
+
+    if not reminder_exists:
+        msg = "📅 Don’t forget to log your daily expenses to keep SmartSpend insights accurate!"
+        save_notification(user_id, "tip", msg)
+        generated.append(msg)
+
+    return jsonify({
+        "message": f"Notifications generated based on your {period} budget",
+        "details": generated
+    })
+
+
+
+# --- Route: Fetch User Notifications ---
+@app.route("/get-notifications")
+def get_notifications():
+    if "user_id" not in session:
+        return jsonify({"error": "Not logged in"}), 403
+
+    user_id = session["user_id"]
+    notifs = get_user_notifications(user_id)
+    return jsonify(notifs)
+
+# --- Route: Mark Notification as Read ---
+@app.route("/mark-read/<int:notif_id>", methods=["POST"])
+def mark_read(notif_id):
+    if "user_id" not in session:
+        return jsonify({"error": "Not logged in"}), 403
+
+    user_id = session["user_id"]
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute("""
+        UPDATE notifications SET is_read = 1
+        WHERE id = ? AND user_id = ?
+    """, (notif_id, user_id))
+    conn.commit()
+    conn.close()
+    return jsonify({"message": "Notification marked as read"})
+
+
+
 @app.route('/')
 def landing():
     return render_template("landingpage.html")
@@ -139,30 +362,20 @@ def reports():
         GROUP BY category, weekday
     """, (session["user_id"],))
     weekday_data = c.fetchall()
-
-    days_map = {
-        "0": "Sunday", 
-        "1": "Monday", 
-        "2": "Tuesday", 
-        "3": "Wednesday",
-        "4": "Thursday", 
-        "5": "Friday", 
-        "6": "Saturday"
-    }
+    conn.close()
 
     from collections import defaultdict
+    days_map = {
+        "0": "Sunday", "1": "Monday", "2": "Tuesday",
+        "3": "Wednesday", "4": "Thursday", "5": "Friday", "6": "Saturday"
+    }
+
     category_days = defaultdict(lambda: {"day": None, "amount": 0})
     for cat, weekday, total in weekday_data:
-    # ✅ Skip invalid weekday values
-        if not weekday or weekday not in days_map:
-            continue
-        if total > category_days[cat]["amount"]:
+        if weekday in days_map and total > category_days[cat]["amount"]:
             category_days[cat] = {"day": days_map[weekday], "amount": total}
 
-
-    c.execute("SELECT SUM(amount) FROM expenses WHERE user_id = ?", (session["user_id"],))
-    total_spent = c.fetchone()[0] or 0
-    conn.close()
+    total_spent = sum([amt for _, amt in grouped_expenses]) or 0
 
     breakdown_data = []
     for cat, total_amount in grouped_expenses:
@@ -170,20 +383,36 @@ def reports():
         most_active_day = category_days[cat]["day"] if cat in category_days else "N/A"
         breakdown_data.append((cat, total_amount, percent, most_active_day))
 
-    # ✅ Prepare expense summary and call ML function
-    expense_summary = {cat: total_amount for cat, total_amount, _, _ in breakdown_data}
-    insights = generate_smartspend_insights(expense_summary)
-
     return render_template(
         "reports.html",
         username=username,
         role=role,
-        breakdown_data=breakdown_data,
-        insights=insights
+        breakdown_data=breakdown_data
     )
 
 
+@app.route('/reports/insights')
+def reports_insights():
+    # ⚡ Separate endpoint for ML loading
+    username = session.get('username')
+    if not username:
+        return {"error": "Not logged in"}, 403
 
+    conn = sqlite3.connect(DB_PATH)
+    c = conn.cursor()
+    c.execute("""
+        SELECT category, SUM(amount) as total_amount
+        FROM expenses
+        WHERE user_id = ?
+        GROUP BY category
+    """, (session["user_id"],))
+    expense_summary = dict(c.fetchall())
+    conn.close()
+
+    # 🧠 Run ML model
+    insights = generate_smartspend_insights(expense_summary)
+
+    return {"insights": insights}
 
 
 
@@ -209,7 +438,6 @@ def index():
         FROM expenses
         WHERE user_id = ?
         ORDER BY id DESC
-        LIMIT 5
     """, (session["user_id"],))
     expenses = c.fetchall()
     conn.close()
@@ -303,6 +531,7 @@ def submit_expense():
         flash("Please log in first!", "warning")
         return redirect(url_for("login"))
 
+    user_id = session["user_id"]
     desc = request.form.get('desc')
     amount = float(request.form.get('amount'))
     date = request.form.get('date')
@@ -310,22 +539,33 @@ def submit_expense():
     # Categorize automatically
     category = categorize_expense(desc, amount)
 
-    # Save to database with user_id
     conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
+
+    # Save expense
     c.execute("""
         INSERT INTO expenses (user_id, description, amount, date, category)
         VALUES (?, ?, ?, ?, ?)
-    """, (session["user_id"], desc, amount, date, category))
+    """, (user_id, desc, amount, date, category))
     conn.commit()
-    
-    c.execute("SELECT SUM(amount) FROM expenses")
+
+    # Calculate total spent for user
+    c.execute("SELECT SUM(amount) FROM expenses WHERE user_id = ?", (user_id,))
     sum_row = c.fetchone()
     total_spent = sum_row[0] if sum_row and sum_row[0] is not None else 0.0
-    conn.close()
-    conn.close()
 
+    # --- Save notification ---
+    notif_message = f"🧾 You added a new expense of ₱{amount:.2f} for {category} ({desc})."
+    c.execute("""
+        INSERT INTO notifications (user_id, type, message)
+        VALUES (?, ?, ?)
+    """, (user_id, "info", notif_message))
+    
+    
+    conn.commit()
 
+    conn.close()
+    generate_notifications()
     flash("Expense added successfully!", "success")
     return redirect(url_for('index', total_spent=total_spent))
 
@@ -337,7 +577,7 @@ def submit_expense():
 def profile():
     print("DEBUG session:", dict(session))  # For debugging
 
-    # ✅ Check login
+    # ✅ Check if user is logged in
     user_id = session.get("user_id")
     if not user_id:
         flash("You must be logged in to view your profile.", "error")
@@ -349,7 +589,7 @@ def profile():
         conn.row_factory = sqlite3.Row
         c = conn.cursor()
 
-        # ✅ Get user info from `users`
+        # ✅ Fetch username & email from the `users` table
         c.execute("""
             SELECT username, email
             FROM users
@@ -361,9 +601,10 @@ def profile():
             flash("User not found!", "error")
             return redirect(url_for("login"))
 
-        username, email = user_row["username"], user_row["email"]
+        username = user_row["username"]
+        email = user_row["email"]
 
-        # ✅ Get profile info from `profile`
+        # ✅ Fetch additional profile info (role, bio, photo) from `profile` table
         c.execute("""
             SELECT role, bio, photo
             FROM profile
@@ -372,12 +613,15 @@ def profile():
         profile_row = c.fetchone()
 
         if profile_row:
-            role, bio, photo = profile_row["role"], profile_row["bio"], profile_row["photo"]
+            role = profile_row["role"]
+            bio = profile_row["bio"]
+            photo = profile_row["photo"]
         else:
             role, bio, photo = "User", "", None
 
         print(f"Loaded profile for user_id={user_id}: username={username}, role={role}")
 
+        # ✅ Pass username (from users table) to the template
         return render_template(
             "profile.html",
             username=username,
@@ -393,6 +637,7 @@ def profile():
     finally:
         if conn:
             conn.close()
+
 
 @app.route('/help')
 def help():
@@ -518,6 +763,7 @@ def budget():
         spent_ratio = min(spent_ratio, 100)  # Cap at 100%
 
     # ✅ Render template with user-specific data
+    generate_notifications()
     return render_template(
         "budget.html",
         period=latest_period,
@@ -553,13 +799,25 @@ def submit_budget():
 
     conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
+
+    # Save budget
     c.execute(
         "INSERT INTO budgettbl (user_id, period, amount, date) VALUES (?, ?, ?, ?)",
         (user_id, period, new_amount, date)
     )
     conn.commit()
-    conn.close()
 
+    # --- Save notification ---
+    notif_message = f"💰 You set a new budget of ₱{new_amount:.2f} for {period}."
+    c.execute("""
+        INSERT INTO notifications (user_id, type, message)
+        VALUES (?, ?, ?)
+    """, (user_id, "success", notif_message))
+    
+    conn.commit()
+    conn.close()
+    generate_notifications()
+    flash("Budget added successfully!", "success")
     return redirect(url_for('budget'))
 
 
@@ -591,7 +849,6 @@ def upload_csv():
     with open(filepath, 'r', encoding='utf-8') as f:
         reader = csv.reader(f)
         for row in reader:
-            # Expecting: description, amount, date
             if len(row) >= 3:
                 desc = row[0].strip()
                 try:
@@ -601,9 +858,8 @@ def upload_csv():
 
                 date_str = row[2].strip()
                 if not date_str:
-                    continue  # skip empty dates
+                    continue
 
-                # ✅ Normalize and validate date
                 parsed_date = None
                 for fmt in ("%Y-%m-%d", "%m/%d/%Y", "%d/%m/%Y"):
                     try:
@@ -612,13 +868,13 @@ def upload_csv():
                     except ValueError:
                         continue
                 if not parsed_date:
-                    continue  # skip invalid dates
+                    continue
 
-                date = parsed_date.strftime("%Y-%m-%d")  # normalized format
-
-                # Auto categorize
+                date = parsed_date.strftime("%Y-%m-%d")
                 category = categorize_expense(desc, amount)
                 entries.append((session["user_id"], desc, amount, date, category))
+
+    user_id = session["user_id"]
 
     # ✅ Insert valid rows into DB
     if entries:
@@ -630,13 +886,93 @@ def upload_csv():
         """, entries)
         conn.commit()
         conn.close()
-        flash(f"Uploaded {len(entries)} expenses successfully!", "success")
-    else:
-        flash("No valid rows found in the file (check date format or empty fields).", "error")
+        
+        generate_notifications()
 
-    os.remove(filepath)  # Clean up uploaded file
+        msg = f"Uploaded {len(entries)} expenses successfully!"
+        flash(msg, "success")
+        save_notification(user_id, "success", f"📂 {msg}")
+    else:
+        msg = "No valid rows found in the file (check date format or empty fields)."
+        flash(msg, "error")
+
+        # ✅ Save error notification
+        save_notification(user_id, "error", f"⚠️ {msg}")
+
+    os.remove(filepath)
     return redirect(url_for("index"))
 
+
+@app.route('/get_spending_data')
+def get_spending_data():
+    if "user_id" not in session:
+        return jsonify({"error": "Unauthorized"}), 401
+
+    date_range = request.args.get("range", "monthly")
+    categories_param = request.args.get("categories", "")
+    categories = [c.strip() for c in categories_param.split(",") if c.strip() and c.lower() != "all"]
+
+    conn = sqlite3.connect(DB_PATH)
+    c = conn.cursor()
+
+    query = """
+        SELECT category, description, SUM(amount)
+        FROM expenses
+        WHERE user_id = ?
+    """
+    params = [session["user_id"]]
+
+    if categories:
+        placeholders = ",".join("?" * len(categories))
+        query += f" AND category IN ({placeholders})"
+        params.extend(categories)
+
+    # 🗓 Filter by date range
+    if date_range == "weekly":
+        query += " AND strftime('%W', date) = strftime('%W', 'now')"
+    elif date_range == "monthly":
+        query += " AND strftime('%m', date) = strftime('%m', 'now')"
+
+    query += " GROUP BY category, description"
+    c.execute(query, params)
+    rows = c.fetchall()
+    conn.close()
+
+    grouped = {}
+    for cat, desc, total in rows:
+        if cat not in grouped:
+            grouped[cat] = {"total": 0, "descriptions": []}
+        grouped[cat]["total"] += total
+        grouped[cat]["descriptions"].append(f"{desc}: ₱{total:,.0f}")
+
+    result = [
+        {"category": cat, "total": info["total"], "descriptions": info["descriptions"]}
+        for cat, info in grouped.items()
+    ]
+
+    return jsonify(result)
+
+
+@app.route('/get_categories')
+def get_categories():
+    if "user_id" not in session:
+        return jsonify({"error": "Unauthorized"}), 401
+
+    conn = sqlite3.connect(DB_PATH)
+    c = conn.cursor()
+    c.execute("""
+        SELECT DISTINCT category FROM expenses
+        WHERE user_id = ?
+        ORDER BY category ASC
+    """, (session["user_id"],))
+    rows = c.fetchall()
+    conn.close()
+
+    categories = [r[0] for r in rows]
+    categories.insert(0, "All")  # add "All" at the start
+
+    return jsonify(categories)
+    
 
 
 ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "gif"}
