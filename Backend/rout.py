@@ -439,14 +439,14 @@ def index():
         role = row[0] if row and row[0] else "User"
         session["role"] = role
 
-    # ✅ Get all expenses for this user
+    # ✅ Get individual recent expenses (4 columns)
     c.execute("""
         SELECT description, amount, date, category
         FROM expenses
         WHERE user_id = ?
         ORDER BY id DESC
     """, (user_id,))
-    expenses = c.fetchall()
+    recent_expenses = c.fetchall()
 
     # ✅ Get latest budget for this user
     c.execute("""
@@ -470,7 +470,7 @@ def index():
     sum_row = c.fetchone()
     total_spent = sum_row[0] if sum_row and sum_row[0] else 0.0
 
-    # ✅ Group by category
+    # ✅ Group by category for budget breakdown (3 columns)
     c.execute("""
         SELECT 
             GROUP_CONCAT(description, ', '), 
@@ -481,7 +481,7 @@ def index():
         GROUP BY category
         ORDER BY total_amount DESC
     """, (user_id,))
-    grouped_expenses = c.fetchall()
+    category_breakdown = c.fetchall()
 
     conn.close()
 
@@ -492,22 +492,25 @@ def index():
         spent_ratio = (total_spent / latest_amount) * 100
         spent_ratio = min(spent_ratio, 100)  # Cap at 100%
 
-    # ✅ Optional notifications (if defined)
+    # ✅ Optional notifications
     generate_notifications()
 
-    # ✅ Render upload.html with both expense + budget data
+    # ✅ Render upload.html with both datasets
     return render_template(
         "upload.html",
         username=username,
         role=role,
-        expenses=expenses,
+        # For <Budget Breakdown>
+        expenses=category_breakdown,  
+        # For <Recent Expenses>
+        recent_expenses=recent_expenses,  
         period=latest_period,
         amount=latest_amount,
         total_spent=total_spent,
         remaining=remaining,
-        grouped_expenses=grouped_expenses,
         spent_ratio=spent_ratio
     )
+
 
 
 
