@@ -9,7 +9,7 @@ import csv
 from datetime import datetime
 from werkzeug.utils import secure_filename 
 from ML.MLmodel import categorize_expense, generate_smartspend_insights
-from flask import Flask, render_template, jsonify, request, send_from_directory, redirect, url_for
+from flask import Flask, render_template, jsonify, request, redirect, url_for
 from werkzeug.utils import secure_filename
 
 
@@ -330,6 +330,7 @@ def reports():
     
     
     role = session.get("role")  # ✅ Use session first — faster
+    user_id = session["user_id"]
 
     conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
@@ -419,30 +420,95 @@ def reports_insights():
 
 @app.route('/upload')
 def index():
+    # ✅ Check if user is logged in
     if "user_id" not in session:
         flash("Please log in first!", "warning")
         return redirect(url_for("login"))
-    role = session.get("role")  # ✅ Use session first — faster
-    
-    # ✅ If role not in session (e.g. user logged in before update), fetch from DB
+
+    user_id = session["user_id"]
+    username = session["username"]
+    role = session.get("role")  # ✅ Use cached role first — faster
+
+    conn = sqlite3.connect(DB_PATH)
+    c = conn.cursor()
+
+    # ✅ If role not in session, fetch from DB and cache
     if not role:
         c.execute("SELECT role FROM profile WHERE user_id = ?", (user_id,))
         row = c.fetchone()
         role = row[0] if row and row[0] else "User"
-        session["role"] = role  # 🔁 Cache it in session for next time
+        session["role"] = role
 
-    conn = sqlite3.connect(DB_PATH)
-    c = conn.cursor()
+    # ✅ Get all expenses for this user
     c.execute("""
         SELECT description, amount, date, category
         FROM expenses
         WHERE user_id = ?
         ORDER BY id DESC
-    """, (session["user_id"],))
+    """, (user_id,))
     expenses = c.fetchall()
+
+    # ✅ Get latest budget for this user
+    c.execute("""
+        SELECT period, amount, date 
+        FROM budgettbl 
+        WHERE user_id = ? 
+        ORDER BY id DESC 
+        LIMIT 1
+    """, (user_id,))
+    budget_row = c.fetchone()
+
+    latest_period = budget_row[0] if budget_row and budget_row[0] else "N/A"
+    latest_amount = float(budget_row[1]) if budget_row and budget_row[1] else 0.0
+
+    # ✅ Get total spent
+    c.execute("""
+        SELECT SUM(amount) 
+        FROM expenses 
+        WHERE user_id = ?
+    """, (user_id,))
+    sum_row = c.fetchone()
+    total_spent = sum_row[0] if sum_row and sum_row[0] else 0.0
+
+    # ✅ Group by category
+    c.execute("""
+        SELECT 
+            GROUP_CONCAT(description, ', '), 
+            category, 
+            SUM(amount) AS total_amount
+        FROM expenses
+        WHERE user_id = ?
+        GROUP BY category
+        ORDER BY total_amount DESC
+    """, (user_id,))
+    grouped_expenses = c.fetchall()
+
     conn.close()
 
-    return render_template("upload.html", expenses=expenses, username=session["username"], role=role)
+    # ✅ Compute remaining budget and spent ratio
+    remaining = max(latest_amount - total_spent, 0.0)
+    spent_ratio = 0
+    if latest_amount > 0:
+        spent_ratio = (total_spent / latest_amount) * 100
+        spent_ratio = min(spent_ratio, 100)  # Cap at 100%
+
+    # ✅ Optional notifications (if defined)
+    generate_notifications()
+
+    # ✅ Render upload.html with both expense + budget data
+    return render_template(
+        "upload.html",
+        username=username,
+        role=role,
+        expenses=expenses,
+        period=latest_period,
+        amount=latest_amount,
+        total_spent=total_spent,
+        remaining=remaining,
+        grouped_expenses=grouped_expenses,
+        spent_ratio=spent_ratio
+    )
+
 
 
 
@@ -694,87 +760,7 @@ def FAQ():
 
 
 
-# Budget route
-@app.route('/budget')
-def budget():
-    # ✅ Check if user is logged in
-    if "user_id" not in session:
-        flash("Please log in first!", "error")
-        return redirect(url_for("login"))
 
-    username = session["username"]
-    user_id = session["user_id"]
-    role = session.get("role")  # ✅ Use session first — faster
-
-    conn = sqlite3.connect(DB_PATH)
-    c = conn.cursor()
-    
-    if not role:
-        c.execute("SELECT role FROM profile WHERE user_id = ?", (user_id,))
-        row = c.fetchone()
-        role = row[0] if row and row[0] else "User"
-        session["role"] = role  # 🔁 Cache it in session for next time
-    
-    
-
-    # ✅ Get latest budget for this specific user
-    c.execute("""
-        SELECT period, amount, date 
-        FROM budgettbl 
-        WHERE user_id = ? 
-        ORDER BY id DESC 
-        LIMIT 1
-    """, (user_id,))
-    budget_row = c.fetchone()
-
-    latest_period = budget_row[0] if budget_row and budget_row[0] else "N/A"
-    latest_amount = float(budget_row[1]) if budget_row and budget_row[1] else 0.0
-
-    # ✅ Get total spent (only this user's expenses)
-    c.execute("""
-        SELECT SUM(amount) 
-        FROM expenses 
-        WHERE user_id = ?
-    """, (user_id,))
-    sum_row = c.fetchone()
-    total_spent = sum_row[0] if sum_row and sum_row[0] else 0.0
-
-    # ✅ Group by category (only this user's expenses)
-    c.execute("""
-        SELECT 
-            GROUP_CONCAT(description, ', '), 
-            category, 
-            SUM(amount) AS total_amount
-        FROM expenses
-        WHERE user_id = ?
-        GROUP BY category
-        ORDER BY total_amount DESC
-    """, (user_id,))
-    grouped_expenses = c.fetchall()
-    
-
-    conn.close()
-
-    # ✅ Calculate remaining budget safely
-    remaining = max(latest_amount - total_spent, 0.0)
-    spent_ratio = 0
-    if latest_amount > 0:
-        spent_ratio = (total_spent / latest_amount) * 100
-        spent_ratio = min(spent_ratio, 100)  # Cap at 100%
-
-    # ✅ Render template with user-specific data
-    generate_notifications()
-    return render_template(
-        "budget.html",
-        period=latest_period,
-        amount=latest_amount,
-        total_spent=total_spent,
-        remaining=remaining,
-        expenses=grouped_expenses,
-        username=username,
-        spent_ratio=spent_ratio,
-        role=role
-    )
 
 
 
@@ -818,7 +804,7 @@ def submit_budget():
     conn.close()
     generate_notifications()
     flash("Budget added successfully!", "success")
-    return redirect(url_for('budget'))
+    return redirect(url_for('upload'))
 
 
 

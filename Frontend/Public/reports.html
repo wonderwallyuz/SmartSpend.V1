@@ -418,14 +418,6 @@
       </a>
     </li>
 
-    <!-- Budget -->
-    <li class="menu-item {% if request.path == url_for('budget') %}active{% endif %}" data-name="budget">
-      <a href="{{ url_for('budget') }}">
-        <span class="material-symbols-outlined">account_balance_wallet</span>
-        <span class="label">Budget</span>
-      </a>
-    </li>
-
     <!-- Reports -->
     <li class="menu-item {% if request.path == url_for('reports') %}active{% endif %}" data-name="reports">
       <a href="{{ url_for('reports') }}">
